@@ -16,32 +16,7 @@ const ctx =
 ctx.imageSmoothingEnabled = false;
 
 
-// ==========================================================
-// HUD
-// ==========================================================
-
-const levelDisplay =
-    document.getElementById("levelDisplay");
-
-const difficultyDisplay =
-    document.getElementById("difficultyDisplay");
-
-const keyDisplay =
-    document.getElementById("keyDisplay");
-
-const gateDisplay =
-    document.getElementById("gateDisplay");
-
-const livesDisplay =
-    document.getElementById("livesDisplay");
-
-
-// ==========================================================
-// MAP SETTINGS
-// ==========================================================
-
 const TILE = 40;
-
 const COLS = 20;
 const ROWS = 15;
 
@@ -53,302 +28,586 @@ canvas.height =
 
 
 // ==========================================================
-// KEYBOARD
+// HUD
 // ==========================================================
 
-const keys = {};
+const levelDisplay =
+    document.getElementById("levelDisplay");
 
-window.addEventListener(
-    "keydown",
-    function(event) {
+const totalLevelsDisplay =
+    document.getElementById("totalLevelsDisplay");
 
-        const key =
-            event.key.toLowerCase();
+const areaDisplay =
+    document.getElementById("areaDisplay");
 
-        keys[key] = true;
+const difficultyDisplay =
+    document.getElementById("difficultyDisplay");
 
+const livesDisplay =
+    document.getElementById("livesDisplay");
 
-        if (
-            key === "arrowup" ||
-            key === "arrowdown" ||
-            key === "arrowleft" ||
-            key === "arrowright" ||
-            event.code === "Space"
-        ) {
+const keyDisplay =
+    document.getElementById("keyDisplay");
 
-            event.preventDefault();
-        }
+const gateDisplay =
+    document.getElementById("gateDisplay");
 
+const timerDisplay =
+    document.getElementById("timerDisplay");
 
-        // START
+const scoreDisplay =
+    document.getElementById("scoreDisplay");
 
-        if (
-            gameState === "start" &&
-            (
-                key === "enter" ||
-                event.code === "Space"
-            )
-        ) {
-
-            gameState = "playing";
-
-            return;
-        }
-
-
-        // RESTART LEVEL
-
-        if (
-            key === "r" &&
-            gameState === "playing"
-        ) {
-
-            loadLevel(currentLevel);
-
-            return;
-        }
-
-
-        // GAME OVER RESTART
-
-        if (
-            gameState === "gameover" &&
-            key === "enter"
-        ) {
-
-            lives = 3;
-
-            loadLevel(0);
-
-            gameState = "playing";
-
-            return;
-        }
-
-
-        // VICTORY RESTART
-
-        if (
-            gameState === "victory" &&
-            key === "enter"
-        ) {
-
-            lives = 3;
-
-            loadLevel(0);
-
-            gameState = "playing";
-        }
-    }
-);
-
-
-window.addEventListener(
-    "keyup",
-    function(event) {
-
-        keys[
-            event.key.toLowerCase()
-        ] = false;
-    }
-);
+const highScoreDisplay =
+    document.getElementById("highScoreDisplay");
 
 
 // ==========================================================
-// LEVEL MAPS
+// SETTINGS
+// ==========================================================
+
+const settingsButton =
+    document.getElementById("settingsButton");
+
+const settingsMenu =
+    document.getElementById("settingsMenu");
+
+const resumeButton =
+    document.getElementById("resumeButton");
+
+const musicVolume =
+    document.getElementById("musicVolume");
+
+const sfxVolume =
+    document.getElementById("sfxVolume");
+
+const musicToggle =
+    document.getElementById("musicToggle");
+
+const sfxToggle =
+    document.getElementById("sfxToggle");
+
+
+// ==========================================================
+// HELP
+// ==========================================================
+
+const helpButton =
+    document.getElementById("helpButton");
+
+const helpMenu =
+    document.getElementById("helpMenu");
+
+const backToSettingsButton =
+    document.getElementById(
+        "backToSettingsButton"
+    );
+
+
+// ==========================================================
+// LEVEL SELECT
+// ==========================================================
+
+const levelSelectButton =
+    document.getElementById(
+        "levelSelectButton"
+    );
+
+const levelSelectMenu =
+    document.getElementById(
+        "levelSelectMenu"
+    );
+
+const levelGrid =
+    document.getElementById(
+        "levelGrid"
+    );
+
+const previousLevelsButton =
+    document.getElementById(
+        "previousLevelsButton"
+    );
+
+const nextLevelsButton =
+    document.getElementById(
+        "nextLevelsButton"
+    );
+
+const levelPageDisplay =
+    document.getElementById(
+        "levelPageDisplay"
+    );
+
+const closeLevelSelectButton =
+    document.getElementById(
+        "closeLevelSelectButton"
+    );
+
+
+const LEVELS_PER_PAGE = 12;
+
+let levelSelectPage = 0;
+
+
+// ==========================================================
+// AUDIO
+// ==========================================================
+
+const backgroundMusic =
+    new Audio(
+        "audio/prison-theme.mp3"
+    );
+
+const keySound =
+    new Audio(
+        "audio/key.mp3"
+    );
+
+const caughtSound =
+    new Audio(
+        "audio/caught.mp3"
+    );
+
+const escapeSound =
+    new Audio(
+        "audio/escape.mp3"
+    );
+
+const alertSound =
+    new Audio(
+        "audio/alert.mp3"
+    );
+
+const footstep1 =
+    new Audio(
+        "audio/footstep1.mp3"
+    );
+
+const footstep2 =
+    new Audio(
+        "audio/footstep2.mp3"
+    );
+
+
+backgroundMusic.loop = true;
+
+
+let musicEnabled = true;
+
+let sfxEnabled = true;
+
+
+let footstepTimer = 0;
+
+let footstepNumber = 0;
+
+const FOOTSTEP_DELAY = 300;
+
+
+// ==========================================================
+// LEVELS
 //
-// # = WALL
-// . = FLOOR
-// P = PLAYER
-// 1 = GUARD
-// 2 = GUARD
-// K = KEY
-// E = EXIT
+// # wall
+// . floor
+// P player
+// 1 guard
+// 2 guard
+// K key
+// E exit
+// H hiding locker
 // ==========================================================
 
 const levels = [
 
-[
-"####################",
-"#P.................#",
-"#.######.########..#",
-"#......#...........#",
-"######.#.#########.#",
-"#......#.......K...#",
-"#.########.######..#",
-"#........#.........#",
-"#.######.#.######..#",
-"#.#......#......#..#",
-"#.#.##########.#...#",
-"#.......1..........#",
-"#.###########.###..#",
-"#.........2.......E#",
-"####################"
-],
+    // LEVEL 1
+    [
+        "####################",
+        "#P.................#",
+        "#.######.########..#",
+        "#......#...........#",
+        "#.####.#.#########.#",
+        "#......#...........#",
+        "#.########.######..#",
+        "#...K....#.........#",
+        "#.######.#.######..#",
+        "#.#......#......#..#",
+        "#.#.###H######..#..#",
+        "#.......1..........#",
+        "#.###########.###..#",
+        "#.........2.......E#",
+        "####################"
+    ],
 
-[
-"####################",
-"#P....#............#",
-"#.##..#.##########.#",
-"#.....#..........#.#",
-"#####.##########.#.#",
-"#...............#..#",
-"#.############..##.#",
-"#.#.......1........#",
-"#.#.###########.##.#",
-"#.#.............#..#",
-"#.##########.####..#",
-"#......2...#....K..#",
-"#.########.#.#####.#",
-"#.................E#",
-"####################"
-],
+    // LEVEL 2
+    [
+        "####################",
+        "#P....#............#",
+        "#.##..#.##########.#",
+        "#.....#..........#.#",
+        "#.###.#.########.#.#",
+        "#.....#....K.....#.#",
+        "#.##########.###.#.#",
+        "#........H........1#",
+        "#.###########.####.#",
+        "#..................#",
+        "#.######.#########.#",
+        "#....2.#...........#",
+        "#.####.#.########..#",
+        "#.................E#",
+        "####################"
+    ],
 
-[
-"####################",
-"#P.....#...........#",
-"#####..#.#########.#",
-"#......#.........#.#",
-"#.###########.##.#.#",
-"#.........1...#....#",
-"#.###########.#.##.#",
-"#.#.........#.#....#",
-"#.#.#######.#.####.#",
-"#.#.......#.#......#",
-"#.#######.#.######.#",
-"#.....2...#.....K..#",
-"#.###########.####.#",
-"#.................E#",
-"####################"
-],
+    // LEVEL 3
+    [
+        "####################",
+        "#P.................#",
+        "#.######.#########.#",
+        "#......#...........#",
+        "#.####.#.#########.#",
+        "#...K..#.....1.....#",
+        "#.#######.########.#",
+        "#......H...........#",
+        "#.###########.####.#",
+        "#.............#....#",
+        "#.######.####.#.##.#",
+        "#..2.....#....#....#",
+        "#.######.#.##H####.#",
+        "#.................E#",
+        "####################"
+    ],
 
-[
-"####################",
-"#P........#........#",
-"#.######..#.######.#",
-"#.#.......#......#.#",
-"#.#.############.#.#",
-"#.#..............#.#",
-"#.########.#########",
-"#......1...........#",
-"######.##########..#",
-"#......#...........#",
-"#.######.#########.#",
-"#....2........K....#",
-"#.###############..#",
-"#.................E#",
-"####################"
-],
+    // LEVEL 4
+    [
+        "####################",
+        "#P........#........#",
+        "#.######..#.######.#",
+        "#......#..#........#",
+        "######.#..########.#",
+        "#......#.....1.....#",
+        "#.####.###########.#",
+        "#..K...............#",
+        "#.##########.######.",
+        "#.......H..........#",
+        "#.##########.#####.#",
+        "#....2.............#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
 
-[
-"####################",
-"#P.................#",
-"#.####.###########.#",
-"#......#............#",
-"#####..#.#########.#",
-"#......#....1.......#",
-"#.####.###########.#",
-"#..................#",
-"#.########.#######.#",
-"#........#.........#",
-"#.######.#.#######.#",
-"#....2...#......K..#",
-"#.######..........##",
-"#.................E#",
-"####################"
-],
+    // LEVEL 5
+    [
+        "####################",
+        "#P.................#",
+        "#.####.###########.#",
+        "#......#...........#",
+        "#.###..#.#########.#",
+        "#..K...#....1......#",
+        "#.####.###########.#",
+        "#........H.........#",
+        "#.########.#######.#",
+        "#........#.........#",
+        "#.######.#.#######.#",
+        "#....2...#.........#",
+        "#.######......H...##",
+        "#.................E#",
+        "####################"
+    ],
 
-[
-"####################",
-"#P.................#",
-"#.################.#",
-"#.................1#",
-"#.###############..#",
-"#.#................#",
-"#.#.##############.#",
-"#.#................#",
-"#.###############..#",
-"#.........2........#",
-"#.################.#",
-"#..............K...#",
-"#.################.#",
-"#.................E#",
-"####################"
-],
+    // LEVEL 6
+    [
+        "####################",
+        "#P.................#",
+        "#.################.#",
+        "#.................1#",
+        "#.###############..#",
+        "#.#....H...........#",
+        "#.#.##############.#",
+        "#.#......K.........#",
+        "#.###############..#",
+        "#.........2........#",
+        "#.################.#",
+        "#..........H.......#",
+        "#.################.#",
+        "#.................E#",
+        "####################"
+    ],
 
-[
-"####################",
-"#P.....#...........#",
-"#.####.#.#########.#",
-"#.#....#...........#",
-"#.#.##############.#",
-"#.#........1.......#",
-"#.###############..#",
-"#..................#",
-"#.###############..#",
-"#.....2............#",
-"#.###############..#",
-"#............K.....#",
-"#.###############..#",
-"#.................E#",
-"####################"
-],
+    // LEVEL 7
+    [
+        "####################",
+        "#P.....#...........#",
+        "#.####.#.#########.#",
+        "#......#...........#",
+        "#.###############..#",
+        "#.....K..1.........#",
+        "#.###############..#",
+        "#.........H........#",
+        "#.###############..#",
+        "#.....2............#",
+        "#.########.######..#",
+        "#........H.........#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
 
-[
-"####################",
-"#P........#........#",
-"#.######..#.######.#",
-"#......#..#......#.#",
-"######.#..######.#.#",
-"#....1.#.........#.#",
-"#.####.#########.#.#",
-"#.#...............##",
-"#.#.#############..#",
-"#.#..........2.....#",
-"#.###############..#",
-"#.........K........#",
-"#.###############..#",
-"#.................E#",
-"####################"
-],
+    // LEVEL 8
+    [
+        "####################",
+        "#P........#........#",
+        "#.######..#.######.#",
+        "#......#..#........#",
+        "######.#..########.#",
+        "#..K.1.#...........#",
+        "#.####.###########.#",
+        "#.......H..........#",
+        "#.###############..#",
+        "#..........2.......#",
+        "#.######.#########.#",
+        "#......H...........#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
 
-[
-"####################",
-"#P.................#",
-"#.################.#",
-"#..................#",
-"#.###############..#",
-"#....1.............#",
-"#.###############..#",
-"#..................#",
-"#.###############..#",
-"#............2.....#",
-"#.###############..#",
-"#..........K.......#",
-"#.###############..#",
-"#.................E#",
-"####################"
-],
+    // LEVEL 9
+    [
+        "####################",
+        "#P.................#",
+        "#.################.#",
+        "#.......K..........#",
+        "#.###############..#",
+        "#....1.............#",
+        "#.###############..#",
+        "#.......H..........#",
+        "#.###############..#",
+        "#............2.....#",
+        "#.###############..#",
+        "#........H.........#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
 
-[
-"####################",
-"#P....#............#",
-"#.##..#.##########.#",
-"#.....#............#",
-"#####.############.#",
-"#.........1........#",
-"#.###############..#",
-"#..................#",
-"#.###############..#",
-"#.......2..........#",
-"#.###############..#",
-"#.............K....#",
-"#.###############..#",
-"#.................E#",
-"####################"
-]
+    // ======================================
+    // MAXIMUM SECURITY
+    // ======================================
+
+    // LEVEL 10
+    [
+        "####################",
+        "#P....#............#",
+        "#.##..#.##########.#",
+        "#.....#............#",
+        "#.###.#.##########.#",
+        "#..K..#....1.......#",
+        "#.###.###########..#",
+        "#.......H..........#",
+        "#.###############..#",
+        "#........2.........#",
+        "#.###############..#",
+        "#...........H......#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
+
+    // LEVEL 11
+    [
+        "####################",
+        "#P.................#",
+        "#.######.#########.#",
+        "#......#...........#",
+        "#.####.#.#########.#",
+        "#..K...#....1......#",
+        "#.####.#.#########.#",
+        "#......H...........#",
+        "#.########.#######.#",
+        "#........#.........#",
+        "#.######.#.#######.#",
+        "#....2.........H...#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
+
+    // LEVEL 12
+    [
+        "####################",
+        "#P....#............#",
+        "#.##..#.##########.#",
+        "#.....#............#",
+        "#.#####.##########.#",
+        "#..K........1......#",
+        "#.#########.######.#",
+        "#.......H..........#",
+        "#.######.#########.#",
+        "#......#...........#",
+        "#.####.#.#########.#",
+        "#..2.......H.......#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
+
+    // LEVEL 13
+    [
+        "####################",
+        "#P.................#",
+        "#.################.#",
+        "#...K..............#",
+        "#.###############..#",
+        "#......1...........#",
+        "#.###############..#",
+        "#......H...........#",
+        "#.###############..#",
+        "#..........2.......#",
+        "#.###############..#",
+        "#........H.........#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
+
+    // LEVEL 14
+    [
+        "####################",
+        "#P.....#...........#",
+        "#.####.#.#########.#",
+        "#......#...........#",
+        "#.###########.####.#",
+        "#..K......1........#",
+        "#.###########.####.#",
+        "#.......H..........#",
+        "#.####.###########.#",
+        "#....#.............#",
+        "#.##.#.###########.#",
+        "#....2.....H.......#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
+
+    // LEVEL 15
+    [
+        "####################",
+        "#P........#........#",
+        "#.######..#.######.#",
+        "#......#..#........#",
+        "######.#..########.#",
+        "#..K.1.#...........#",
+        "#.####.###########.#",
+        "#......H...........#",
+        "#.###############..#",
+        "#.......2..........#",
+        "#.###############..#",
+        "#...........H......#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
+
+    // LEVEL 16
+    [
+        "####################",
+        "#P.................#",
+        "#.################.#",
+        "#..K...............#",
+        "#.#########.######.#",
+        "#.......1..........#",
+        "#.###############..#",
+        "#.....H............#",
+        "#.######.#########.#",
+        "#......#....2......#",
+        "#.####.#.#########.#",
+        "#.........H........#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
+
+    // LEVEL 17
+    [
+        "####################",
+        "#P....#............#",
+        "#.##..#.##########.#",
+        "#.....#............#",
+        "#.###.#.##########.#",
+        "#..K..#.....1......#",
+        "#.###.###########..#",
+        "#......H...........#",
+        "#.###############..#",
+        "#.........2........#",
+        "#.###############..#",
+        "#..........H.......#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
+
+    // LEVEL 18
+    [
+        "####################",
+        "#P.................#",
+        "#.######.#########.#",
+        "#......#...........#",
+        "#.####.###########.#",
+        "#..K.#.......1.....#",
+        "#.##.###########...#",
+        "#.......H..........#",
+        "#.###############..#",
+        "#.....2............#",
+        "#.###############..#",
+        "#..........H.......#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
+
+    // LEVEL 19
+    [
+        "####################",
+        "#P........#........#",
+        "#.######..#.######.#",
+        "#......#..#........#",
+        "######.#..########.#",
+        "#..K.1.#...........#",
+        "#.####.###########.#",
+        "#......H...........#",
+        "#.#########.######.#",
+        "#.........#........#",
+        "#.#######.#.######.#",
+        "#....2......H......#",
+        "#.###############..#",
+        "#.................E#",
+        "####################"
+    ],
+
+    // LEVEL 20
+    [
+        "####################",
+        "#P....#............#",
+        "#.##..#.##########.#",
+        "#.....#............#",
+        "#.###.#.##########.#",
+        "#K....#....1.......#",
+        "#.###.###########..#",
+        "#......H...........#",
+        "#.###############..#",
+        "#........2.........#",
+        "#.###############..#",
+        "#.........H........#",
+        "#.###########.####.#",
+        "#.................E#",
+        "####################"
+    ]
 
 ];
+
+
+totalLevelsDisplay.textContent =
+    levels.length;
 
 
 // ==========================================================
@@ -365,13 +624,143 @@ let hasKey = false;
 
 let gameState = "start";
 
+let previousGameState = "start";
+
+
 let player;
 
 let guards = [];
 
-let keyItem;
+let keyItem = null;
 
-let exitGate;
+let exitGate = null;
+
+let hidingSpots = [];
+
+let playerHidden = false;
+
+let currentHidingSpot = null;
+
+
+// ==========================================================
+// SCORE / TIMER
+// ==========================================================
+
+let gameStartTime = 0;
+
+let elapsedTime = 0;
+
+let pausedTime = 0;
+
+let pauseStartedAt = 0;
+
+let score = 0;
+
+
+let highScore =
+    Number(
+        localStorage.getItem(
+            "cellBlockEscapeHighScore"
+        )
+    ) || 0;
+
+
+let highestUnlockedLevel =
+    Number(
+        localStorage.getItem(
+            "cellBlockEscapeUnlockedLevel"
+        )
+    ) || 1;
+
+
+highestUnlockedLevel =
+    Math.min(
+        Math.max(
+            highestUnlockedLevel,
+            1
+        ),
+        levels.length
+    );
+
+
+highScoreDisplay.textContent =
+    highScore;
+
+
+// ==========================================================
+// LEVEL THEME
+// ==========================================================
+
+function getLevelTheme() {
+
+    const level =
+        currentLevel + 1;
+
+
+    if (level <= 9) {
+
+        return {
+
+            name:
+                "OLD PRISON",
+
+            floor1:
+                "#d9ad3b",
+
+            floor2:
+                "#d2a336",
+
+            floorLine:
+                "rgba(100,65,10,.20)",
+
+            wallOuter:
+                "#4b2b16",
+
+            wallMain:
+                "#754421",
+
+            wallLight:
+                "#986039",
+
+            wallDark:
+                "#3b210f",
+
+            wallLine:
+                "#4a2813"
+        };
+    }
+
+
+    return {
+
+        name:
+            "MAXIMUM SECURITY",
+
+        floor1:
+            "#777777",
+
+        floor2:
+            "#686868",
+
+        floorLine:
+            "rgba(20,20,20,.30)",
+
+        wallOuter:
+            "#050505",
+
+        wallMain:
+            "#151515",
+
+        wallLight:
+            "#303030",
+
+        wallDark:
+            "#000000",
+
+        wallLine:
+            "#424242"
+    };
+}
 
 
 // ==========================================================
@@ -384,74 +773,66 @@ function getDifficulty() {
         currentLevel + 1;
 
 
-    if (level <= 3) {
+    if (level <= 5) {
 
         return {
-
             name: "EASY",
-
-            guardSpeed: 1.05,
-
-            patrolSpeed: 1.0,
-
-            detectionRange: 170,
-
-            pathDelay: 22
+            guardSpeed: 1,
+            patrolSpeed: 0.65,
+            detectionRange: 150,
+            pathDelay: 24
         };
     }
 
 
-    if (level <= 6) {
+    if (level <= 10) {
 
         return {
-
-            name: "MEDIUM",
-
-            guardSpeed: 1.80,
-
-            patrolSpeed: 1.5,
-
-            detectionRange: 210,
-
-            pathDelay: 16
+            name: "NORMAL",
+            guardSpeed: 1.2,
+            patrolSpeed: 0.8,
+            detectionRange: 180,
+            pathDelay: 20
         };
     }
 
 
-    if (level <= 9) {
+    if (level <= 15) {
 
         return {
-
             name: "HARD",
+            guardSpeed: 1.4,
+            patrolSpeed: 0.9,
+            detectionRange: 220,
+            pathDelay: 15
+        };
+    }
 
-            guardSpeed: 2.20,
 
-            patrolSpeed: 1.70,
+    if (level <= 19) {
 
+        return {
+            name: "VERY HARD",
+            guardSpeed: 1.6,
+            patrolSpeed: 1,
             detectionRange: 250,
-
-            pathDelay: 12
+            pathDelay: 11
         };
     }
 
 
     return {
-
         name: "MAXIMUM",
-
-        guardSpeed: 3.0,
-
-        patrolSpeed: 2.15,
-
+        guardSpeed: 1.8,
+        patrolSpeed: 1.1,
         detectionRange: 290,
-
         pathDelay: 8
     };
 }
 
 
 // ==========================================================
-// CREATE CHARACTER
+// CHARACTER
 // ==========================================================
 
 function createCharacter(
@@ -496,6 +877,7 @@ function loadLevel(index) {
     currentMap =
         levels[currentLevel];
 
+
     hasKey = false;
 
     guards = [];
@@ -503,6 +885,16 @@ function loadLevel(index) {
     keyItem = null;
 
     exitGate = null;
+
+    hidingSpots = [];
+
+    playerHidden = false;
+
+    currentHidingSpot = null;
+
+
+    const difficulty =
+        getDifficulty();
 
 
     for (
@@ -521,29 +913,21 @@ function loadLevel(index) {
                 currentMap[row][col];
 
 
-            // PLAYER
-
             if (tile === "P") {
 
                 player =
                     createCharacter(
                         col,
                         row,
-                        2.8
+                        1.5
                     );
             }
 
-
-            // GUARDS
 
             if (
                 tile === "1" ||
                 tile === "2"
             ) {
-
-                const difficulty =
-                    getDifficulty();
-
 
                 const guard =
                     createCharacter(
@@ -557,25 +941,26 @@ function loadLevel(index) {
 
                 guard.pathTimer = 0;
 
-                guard.state = "patrol";
+                guard.state =
+                    "patrol";
 
-                guard.chasing = false;
-
-                guard.patrolTarget = null;
+                guard.patrolTarget =
+                    null;
 
                 guard.patrolWait =
                     Math.floor(
                         Math.random() * 50
                     );
 
-                guard.lastSeenPlayer = null;
+                guard.lastSeenPlayer =
+                    null;
 
 
-                guards.push(guard);
+                guards.push(
+                    guard
+                );
             }
 
-
-            // KEY
 
             if (tile === "K") {
 
@@ -596,8 +981,6 @@ function loadLevel(index) {
             }
 
 
-            // EXIT
-
             if (tile === "E") {
 
                 exitGate = {
@@ -613,11 +996,59 @@ function loadLevel(index) {
                     height: TILE
                 };
             }
+
+
+            if (tile === "H") {
+
+                hidingSpots.push({
+
+                    x:
+                        col * TILE + 5,
+
+                    y:
+                        row * TILE + 5,
+
+                    width:
+                        TILE - 10,
+
+                    height:
+                        TILE - 10,
+
+                    col: col,
+
+                    row: row
+                });
+            }
         }
     }
 
 
+    updatePageTheme();
+
     updateHUD();
+}
+
+
+// ==========================================================
+// PAGE THEME
+// ==========================================================
+
+function updatePageTheme() {
+
+    if (
+        currentLevel + 1 >= 10
+    ) {
+
+        document.body.classList.add(
+            "maximum-security-theme"
+        );
+
+    } else {
+
+        document.body.classList.remove(
+            "maximum-security-theme"
+        );
+    }
 }
 
 
@@ -630,9 +1061,16 @@ function updateHUD() {
     const difficulty =
         getDifficulty();
 
+    const theme =
+        getLevelTheme();
+
 
     levelDisplay.textContent =
         currentLevel + 1;
+
+
+    areaDisplay.textContent =
+        theme.name;
 
 
     difficultyDisplay.textContent =
@@ -641,6 +1079,14 @@ function updateHUD() {
 
     livesDisplay.textContent =
         lives;
+
+
+    scoreDisplay.textContent =
+        score;
+
+
+    highScoreDisplay.textContent =
+        highScore;
 
 
     if (hasKey) {
@@ -677,20 +1123,150 @@ function updateHUD() {
 
 
 // ==========================================================
-// WALL CHECK
+// KEYBOARD
+// ==========================================================
+
+const keys = {};
+
+
+window.addEventListener(
+    "keydown",
+    function(event) {
+
+        const key =
+            event.key.toLowerCase();
+
+
+        keys[key] = true;
+
+
+        if (
+            key.startsWith("arrow") ||
+            event.code === "Space"
+        ) {
+
+            event.preventDefault();
+        }
+
+
+        if (
+            gameState === "start" &&
+            (
+                key === "enter" ||
+                event.code === "Space"
+            )
+        ) {
+
+            startNewGame();
+
+            return;
+        }
+
+
+        if (
+            gameState === "playing" &&
+            key === "e"
+        ) {
+
+            toggleHiding();
+
+            return;
+        }
+
+
+        if (
+            gameState === "playing" &&
+            key === "r"
+        ) {
+
+            loadLevel(
+                currentLevel
+            );
+
+            return;
+        }
+
+
+        if (
+            (
+                gameState === "gameover" ||
+                gameState === "victory"
+            )
+            &&
+            key === "enter"
+        ) {
+
+            startNewGame();
+        }
+    }
+);
+
+
+window.addEventListener(
+    "keyup",
+    function(event) {
+
+        keys[
+            event.key.toLowerCase()
+        ] = false;
+    }
+);
+
+
+// ==========================================================
+// NEW GAME
+// ==========================================================
+
+function startNewGame() {
+
+    lives = 3;
+
+    score = 0;
+
+    elapsedTime = 0;
+
+    pausedTime = 0;
+
+    pauseStartedAt = 0;
+
+
+    timerDisplay.textContent =
+        "00:00";
+
+
+    loadLevel(0);
+
+
+    gameStartTime =
+        Date.now();
+
+
+    gameState =
+        "playing";
+
+
+    if (musicEnabled) {
+
+        backgroundMusic.currentTime = 0;
+
+        backgroundMusic
+            .play()
+            .catch(() => {});
+    }
+}
+
+
+// ==========================================================
+// COLLISION
 // ==========================================================
 
 function isWallAtPixel(x, y) {
 
     const col =
-        Math.floor(
-            x / TILE
-        );
+        Math.floor(x / TILE);
 
     const row =
-        Math.floor(
-            y / TILE
-        );
+        Math.floor(y / TILE);
 
 
     if (
@@ -710,10 +1286,6 @@ function isWallAtPixel(x, y) {
     );
 }
 
-
-// ==========================================================
-// WALL COLLISION
-// ==========================================================
 
 function collidesWithWall(
     x,
@@ -753,10 +1325,6 @@ function collidesWithWall(
 }
 
 
-// ==========================================================
-// RECTANGLE COLLISION
-// ==========================================================
-
 function rectanglesTouch(a, b) {
 
     return (
@@ -786,9 +1354,7 @@ function rectanglesTouch(a, b) {
 // WALK ANIMATION
 // ==========================================================
 
-function updateWalkAnimation(
-    character
-) {
+function updateWalkAnimation(character) {
 
     if (character.moving) {
 
@@ -796,7 +1362,7 @@ function updateWalkAnimation(
 
 
         if (
-            character.animationTimer >= 7
+            character.animationTimer >= 10
         ) {
 
             character.walkFrame =
@@ -818,10 +1384,71 @@ function updateWalkAnimation(
 
 
 // ==========================================================
+// FOOTSTEPS
+// ==========================================================
+
+function updateFootsteps() {
+
+    if (
+        !player.moving ||
+        playerHidden ||
+        !sfxEnabled
+    ) {
+
+        return;
+    }
+
+
+    const now =
+        Date.now();
+
+
+    if (
+        now - footstepTimer <
+        FOOTSTEP_DELAY
+    ) {
+
+        return;
+    }
+
+
+    const sound =
+        footstepNumber === 0
+            ? footstep1
+            : footstep2;
+
+
+    sound.currentTime = 0;
+
+
+    sound
+        .play()
+        .catch(() => {});
+
+
+    footstepNumber =
+        footstepNumber === 0
+            ? 1
+            : 0;
+
+
+    footstepTimer = now;
+}
+
+
+// ==========================================================
 // PLAYER MOVEMENT
 // ==========================================================
 
 function updatePlayer() {
+
+    if (playerHidden) {
+
+        player.moving = false;
+
+        return;
+    }
+
 
     let dx = 0;
 
@@ -831,8 +1458,6 @@ function updatePlayer() {
     player.moving = false;
 
 
-    // UP
-
     if (
         keys["w"] ||
         keys["arrowup"]
@@ -840,13 +1465,13 @@ function updatePlayer() {
 
         dy -= player.speed;
 
-        player.direction = "up";
+        player.direction =
+            "up";
 
-        player.moving = true;
+        player.moving =
+            true;
     }
 
-
-    // DOWN
 
     if (
         keys["s"] ||
@@ -855,13 +1480,13 @@ function updatePlayer() {
 
         dy += player.speed;
 
-        player.direction = "down";
+        player.direction =
+            "down";
 
-        player.moving = true;
+        player.moving =
+            true;
     }
 
-
-    // LEFT
 
     if (
         keys["a"] ||
@@ -870,13 +1495,13 @@ function updatePlayer() {
 
         dx -= player.speed;
 
-        player.direction = "left";
+        player.direction =
+            "left";
 
-        player.moving = true;
+        player.moving =
+            true;
     }
 
-
-    // RIGHT
 
     if (
         keys["d"] ||
@@ -885,13 +1510,13 @@ function updatePlayer() {
 
         dx += player.speed;
 
-        player.direction = "right";
+        player.direction =
+            "right";
 
-        player.moving = true;
+        player.moving =
+            true;
     }
 
-
-    // DIAGONAL SPEED FIX
 
     if (
         dx !== 0 &&
@@ -903,8 +1528,6 @@ function updatePlayer() {
         dy *= 0.7071;
     }
 
-
-    // X COLLISION
 
     const newX =
         player.x + dx;
@@ -919,11 +1542,10 @@ function updatePlayer() {
         )
     ) {
 
-        player.x = newX;
+        player.x =
+            newX;
     }
 
-
-    // Y COLLISION
 
     const newY =
         player.y + dy;
@@ -938,23 +1560,84 @@ function updatePlayer() {
         )
     ) {
 
-        player.y = newY;
+        player.y =
+            newY;
     }
 
 
     updateWalkAnimation(
         player
     );
+
+
+    updateFootsteps();
 }
 
 
 // ==========================================================
-// GET CHARACTER TILE
+// HIDING
 // ==========================================================
 
-function getCharacterTile(
-    character
-) {
+function toggleHiding() {
+
+    if (playerHidden) {
+
+        playerHidden = false;
+
+        currentHidingSpot =
+            null;
+
+        return;
+    }
+
+
+    for (
+        const spot
+        of hidingSpots
+    ) {
+
+        if (
+            rectanglesTouch(
+                player,
+                spot
+            )
+        ) {
+
+            playerHidden =
+                true;
+
+
+            currentHidingSpot =
+                spot;
+
+
+            player.x =
+                spot.x +
+                spot.width / 2 -
+                player.width / 2;
+
+
+            player.y =
+                spot.y +
+                spot.height / 2 -
+                player.height / 2;
+
+
+            player.moving =
+                false;
+
+
+            return;
+        }
+    }
+}
+
+
+// ==========================================================
+// TILE POSITION
+// ==========================================================
+
+function getCharacterTile(character) {
 
     return {
 
@@ -963,9 +1646,7 @@ function getCharacterTile(
                 (
                     character.x +
                     character.width / 2
-                )
-                /
-                TILE
+                ) / TILE
             ),
 
         row:
@@ -973,33 +1654,23 @@ function getCharacterTile(
                 (
                     character.y +
                     character.height / 2
-                )
-                /
-                TILE
+                ) / TILE
             )
     };
 }
 
 
 // ==========================================================
-// PATHFINDING
+// BFS PATHFINDING
 // ==========================================================
 
-function findPath(
-    start,
-    target
-) {
+function findPath(start, target) {
 
     const queue = [
 
         {
-
-            col:
-                start.col,
-
-            row:
-                start.row,
-
+            col: start.col,
+            row: start.row,
             path: []
         }
     ];
@@ -1018,25 +1689,14 @@ function findPath(
 
     const directions = [
 
-        {
-            col: 1,
-            row: 0
-        },
+        { col: 1, row: 0 },
 
-        {
-            col: -1,
-            row: 0
-        },
+        { col: -1, row: 0 },
 
-        {
-            col: 0,
-            row: 1
-        },
+        { col: 0, row: 1 },
 
-        {
-            col: 0,
-            row: -1
-        }
+        { col: 0, row: -1 }
+
     ];
 
 
@@ -1049,13 +1709,8 @@ function findPath(
 
 
         if (
-            current.col ===
-            target.col
-
-            &&
-
-            current.row ===
-            target.row
+            current.col === target.col &&
+            current.row === target.row
         ) {
 
             return current.path;
@@ -1098,9 +1753,7 @@ function findPath(
 
 
             const id =
-                col +
-                "," +
-                row;
+                col + "," + row;
 
 
             if (
@@ -1139,12 +1792,10 @@ function findPath(
 
 
 // ==========================================================
-// CHOOSE PATROL TARGET
+// PATROL
 // ==========================================================
 
-function choosePatrolTarget(
-    guard
-) {
+function choosePatrolTarget(guard) {
 
     const guardTile =
         getCharacterTile(
@@ -1152,11 +1803,11 @@ function choosePatrolTarget(
         );
 
 
-    const possibleTiles =
+    const possible =
         [];
 
 
-    const patrolRadius = 6;
+    const radius = 6;
 
 
     for (
@@ -1164,14 +1815,14 @@ function choosePatrolTarget(
             Math.max(
                 1,
                 guardTile.row -
-                patrolRadius
+                radius
             );
 
         row <=
             Math.min(
                 ROWS - 2,
                 guardTile.row +
-                patrolRadius
+                radius
             );
 
         row++
@@ -1182,14 +1833,14 @@ function choosePatrolTarget(
                 Math.max(
                     1,
                     guardTile.col -
-                    patrolRadius
+                    radius
                 );
 
             col <=
                 Math.min(
                     COLS - 2,
                     guardTile.col +
-                    patrolRadius
+                    radius
                 );
 
             col++
@@ -1217,86 +1868,77 @@ function choosePatrolTarget(
 
 
             if (
-                distance < 3
+                distance >= 3
             ) {
 
-                continue;
+                possible.push({
+                    col: col,
+                    row: row
+                });
             }
-
-
-            possibleTiles.push({
-
-                col: col,
-
-                row: row
-            });
         }
     }
 
 
     if (
-        possibleTiles.length === 0
+        possible.length === 0
     ) {
 
         return null;
     }
 
 
-    const randomIndex =
+    return possible[
         Math.floor(
             Math.random() *
-            possibleTiles.length
-        );
-
-
-    return (
-        possibleTiles[
-            randomIndex
-        ]
-    );
+            possible.length
+        )
+    ];
 }
 
 
 // ==========================================================
-// GUARD LINE OF SIGHT
+// GUARD VISION
 // ==========================================================
 
-function guardCanSeePlayer(
-    guard
-) {
+function guardCanSeePlayer(guard) {
+
+    if (playerHidden) {
+
+        return false;
+    }
+
 
     const difficulty =
         getDifficulty();
 
 
-    const guardCenterX =
+    const gx =
         guard.x +
         guard.width / 2;
 
 
-    const guardCenterY =
+    const gy =
         guard.y +
         guard.height / 2;
 
 
-    const playerCenterX =
+    const px =
         player.x +
         player.width / 2;
 
 
-    const playerCenterY =
+    const py =
         player.y +
         player.height / 2;
 
 
     const dx =
-        playerCenterX -
-        guardCenterX;
+        px - gx;
 
 
     const dy =
-        playerCenterY -
-        guardCenterY;
+        py - gy;
 
 
     const distance =
@@ -1306,8 +1948,6 @@ function guardCanSeePlayer(
         );
 
 
-    // TOO FAR
-
     if (
         distance >
         difficulty.detectionRange
@@ -1316,8 +1956,6 @@ function guardCanSeePlayer(
         return false;
     }
 
-
-    // WALL BLOCKING VISION
 
     const steps =
         Math.ceil(
@@ -1335,20 +1973,10 @@ function guardCanSeePlayer(
             i / steps;
 
 
-        const checkX =
-            guardCenterX +
-            dx * t;
-
-
-        const checkY =
-            guardCenterY +
-            dy * t;
-
-
         if (
             isWallAtPixel(
-                checkX,
-                checkY
+                gx + dx * t,
+                gy + dy * t
             )
         ) {
 
@@ -1365,9 +1993,7 @@ function guardCanSeePlayer(
 // MOVE GUARD ALONG PATH
 // ==========================================================
 
-function moveGuardAlongPath(
-    guard
-) {
+function moveGuardAlongPath(guard) {
 
     if (
         !guard.path ||
@@ -1385,18 +2011,14 @@ function moveGuardAlongPath(
 
 
     const targetX =
-        next.col * TILE
-        +
-        TILE / 2
-        -
+        next.col * TILE +
+        TILE / 2 -
         guard.width / 2;
 
 
     const targetY =
-        next.row * TILE
-        +
-        TILE / 2
-        -
+        next.row * TILE +
+        TILE / 2 -
         guard.height / 2;
 
 
@@ -1417,9 +2039,7 @@ function moveGuardAlongPath(
         );
 
 
-    if (
-        distance < 1
-    ) {
+    if (distance < 1) {
 
         guard.x =
             targetX;
@@ -1492,8 +2112,6 @@ function moveGuardAlongPath(
 
 // ==========================================================
 // GUARD AI
-//
-// PATROL -> CHASE -> SEARCH -> PATROL
 // ==========================================================
 
 function updateGuards() {
@@ -1516,17 +2134,22 @@ function updateGuards() {
             );
 
 
-        // ==============================================
-        // PLAYER SEEN
-        // ==============================================
-
         if (canSeePlayer) {
+
+            if (
+                guard.state !==
+                "chase"
+            ) {
+
+                playSFX(
+                    alertSound
+                );
+            }
+
 
             guard.state =
                 "chase";
 
-            guard.chasing =
-                true;
 
             guard.lastSeenPlayer =
                 getCharacterTile(
@@ -1535,13 +2158,10 @@ function updateGuards() {
         }
 
 
-        // ==============================================
         // CHASE
-        // ==============================================
 
         if (
-            guard.state ===
-            "chase"
+            guard.state === "chase"
         ) {
 
             guard.speed =
@@ -1579,9 +2199,6 @@ function updateGuards() {
                 guard.state =
                     "search";
 
-                guard.chasing =
-                    false;
-
 
                 if (
                     guard.lastSeenPlayer
@@ -1606,13 +2223,10 @@ function updateGuards() {
         }
 
 
-        // ==============================================
         // SEARCH
-        // ==============================================
 
         else if (
-            guard.state ===
-            "search"
+            guard.state === "search"
         ) {
 
             guard.speed =
@@ -1623,9 +2237,6 @@ function updateGuards() {
 
                 guard.state =
                     "chase";
-
-                guard.chasing =
-                    true;
 
             } else {
 
@@ -1641,11 +2252,14 @@ function updateGuards() {
                     guard.state =
                         "patrol";
 
+
                     guard.lastSeenPlayer =
                         null;
 
+
                     guard.patrolTarget =
                         null;
+
 
                     guard.patrolWait =
                         45;
@@ -1654,18 +2268,9 @@ function updateGuards() {
         }
 
 
-        // ==============================================
         // PATROL
-        // ==============================================
 
-        else if (
-            guard.state ===
-            "patrol"
-        ) {
-
-            guard.chasing =
-                false;
-
+        else {
 
             guard.speed =
                 difficulty.patrolSpeed;
@@ -1702,21 +2307,6 @@ function updateGuards() {
 
                                 guard.patrolTarget
                             );
-
-
-                        // If target can't be reached,
-                        // choose another later.
-
-                        if (
-                            guard.path.length === 0
-                        ) {
-
-                            guard.patrolTarget =
-                                null;
-
-                            guard.patrolWait =
-                                10;
-                        }
                     }
                 }
 
@@ -1738,24 +2328,21 @@ function updateGuards() {
                     guard.patrolWait =
                         25 +
                         Math.floor(
-                            Math.random()
-                            * 50
+                            Math.random() *
+                            50
                         );
                 }
             }
         }
 
 
-        // WALK ANIMATION
-
         updateWalkAnimation(
             guard
         );
 
 
-        // PLAYER CAUGHT
-
         if (
+            !playerHidden &&
             rectanglesTouch(
                 player,
                 guard
@@ -1776,6 +2363,11 @@ function updateGuards() {
 
 function playerCaught() {
 
+    playSFX(
+        caughtSound
+    );
+
+
     lives--;
 
 
@@ -1787,6 +2379,8 @@ function playerCaught() {
 
         gameState =
             "gameover";
+
+        backgroundMusic.pause();
 
         updateHUD();
 
@@ -1825,7 +2419,15 @@ function updateKey() {
         keyItem.collected =
             true;
 
-        hasKey = true;
+
+        hasKey =
+            true;
+
+
+        playSFX(
+            keySound
+        );
+
 
         updateHUD();
     }
@@ -1860,32 +2462,786 @@ function updateExit() {
 
 
 // ==========================================================
-// NEXT LEVEL
+// SCORE
 // ==========================================================
 
-function nextLevel() {
+function calculateLevelScore() {
 
-    if (
-        currentLevel >=
-        levels.length - 1
-    ) {
-
-        gameState =
-            "victory";
-
-        return;
-    }
+    const level =
+        currentLevel + 1;
 
 
-    loadLevel(
-        currentLevel + 1
+    return (
+        1000 +
+        level * 100 +
+        lives * 250
     );
 }
 
 
 // ==========================================================
+// NEXT LEVEL / UNLOCKING
+// ==========================================================
+
+function nextLevel() {
+
+    playSFX(
+        escapeSound
+    );
+
+
+    score +=
+        calculateLevelScore();
+
+
+    const completedLevel =
+        currentLevel + 1;
+
+
+    localStorage.setItem(
+        "cellBlockEscapeCompleted_" +
+        completedLevel,
+        "1"
+    );
+
+
+    const nextNumber =
+        completedLevel + 1;
+
+
+    if (
+        nextNumber <=
+        levels.length &&
+        nextNumber >
+        highestUnlockedLevel
+    ) {
+
+        highestUnlockedLevel =
+            nextNumber;
+
+
+        localStorage.setItem(
+            "cellBlockEscapeUnlockedLevel",
+            highestUnlockedLevel
+        );
+    }
+
+
+    if (
+        currentLevel <
+        levels.length - 1
+    ) {
+
+        loadLevel(
+            currentLevel + 1
+        );
+
+    } else {
+
+        finishGame();
+    }
+}
+
+
+// ==========================================================
+// FINISH GAME
+// ==========================================================
+
+function finishGame() {
+
+    const totalSeconds =
+        Math.floor(
+            elapsedTime / 1000
+        );
+
+
+    score +=
+        Math.max(
+            0,
+            10000 -
+            totalSeconds * 10
+        );
+
+
+    if (
+        score >
+        highScore
+    ) {
+
+        highScore =
+            score;
+
+
+        localStorage.setItem(
+            "cellBlockEscapeHighScore",
+            highScore
+        );
+    }
+
+
+    updateHUD();
+
+
+    gameState =
+        "victory";
+
+
+    backgroundMusic.pause();
+}
+
+
+// ==========================================================
+// TIMER
+// ==========================================================
+
+function updateTimer() {
+
+    elapsedTime =
+        Date.now() -
+        gameStartTime -
+        pausedTime;
+
+
+    const totalSeconds =
+        Math.floor(
+            elapsedTime / 1000
+        );
+
+
+    const minutes =
+        Math.floor(
+            totalSeconds / 60
+        );
+
+
+    const seconds =
+        totalSeconds % 60;
+
+
+    timerDisplay.textContent =
+        String(
+            minutes
+        ).padStart(
+            2,
+            "0"
+        )
+        +
+        ":"
+        +
+        String(
+            seconds
+        ).padStart(
+            2,
+            "0"
+        );
+}
+
+
+// ==========================================================
+// AUDIO
+// ==========================================================
+
+function playSFX(sound) {
+
+    if (!sfxEnabled) {
+
+        return;
+    }
+
+
+    sound.currentTime = 0;
+
+
+    sound
+        .play()
+        .catch(() => {});
+}
+
+
+function updateSFXVolume() {
+
+    const volume =
+        Number(
+            sfxVolume.value
+        ) / 100;
+
+
+    keySound.volume =
+        volume;
+
+    caughtSound.volume =
+        volume;
+
+    escapeSound.volume =
+        volume;
+
+    alertSound.volume =
+        volume;
+
+
+    footstep1.volume =
+        volume * 0.45;
+
+    footstep2.volume =
+        volume * 0.45;
+}
+
+
+// ==========================================================
+// SETTINGS STORAGE
+// ==========================================================
+
+function saveSettings() {
+
+    localStorage.setItem(
+        "cellBlockEscapeSettings",
+
+        JSON.stringify({
+
+            musicVolume:
+                musicVolume.value,
+
+            sfxVolume:
+                sfxVolume.value,
+
+            musicEnabled:
+                musicEnabled,
+
+            sfxEnabled:
+                sfxEnabled
+        })
+    );
+}
+
+
+function loadSettings() {
+
+    const saved =
+        localStorage.getItem(
+            "cellBlockEscapeSettings"
+        );
+
+
+    if (saved) {
+
+        try {
+
+            const settings =
+                JSON.parse(saved);
+
+
+            musicVolume.value =
+                settings.musicVolume ??
+                35;
+
+
+            sfxVolume.value =
+                settings.sfxVolume ??
+                70;
+
+
+            musicEnabled =
+                settings.musicEnabled ??
+                true;
+
+
+            sfxEnabled =
+                settings.sfxEnabled ??
+                true;
+
+        } catch (error) {
+
+            console.log(
+                "Settings could not be loaded."
+            );
+        }
+    }
+
+
+    backgroundMusic.volume =
+        Number(
+            musicVolume.value
+        ) / 100;
+
+
+    updateSFXVolume();
+
+
+    musicToggle.textContent =
+        musicEnabled
+            ? "ON"
+            : "OFF";
+
+
+    sfxToggle.textContent =
+        sfxEnabled
+            ? "ON"
+            : "OFF";
+}
+
+
+// ==========================================================
+// PAUSE HELPERS
+// ==========================================================
+
+function pauseGameForMenu() {
+
+    previousGameState =
+        gameState;
+
+
+    if (
+        gameState ===
+        "playing"
+    ) {
+
+        pauseStartedAt =
+            Date.now();
+    }
+
+
+    gameState =
+        "paused";
+}
+
+
+function resumeGameFromMenu() {
+
+    if (
+        previousGameState ===
+        "playing"
+        &&
+        pauseStartedAt > 0
+    ) {
+
+        pausedTime +=
+            Date.now() -
+            pauseStartedAt;
+    }
+
+
+    pauseStartedAt = 0;
+
+
+    gameState =
+        previousGameState;
+}
+
+
+// ==========================================================
+// SETTINGS EVENTS
+// ==========================================================
+
+settingsButton.addEventListener(
+    "click",
+    function() {
+
+        pauseGameForMenu();
+
+
+        settingsMenu.classList.remove(
+            "hidden"
+        );
+    }
+);
+
+
+resumeButton.addEventListener(
+    "click",
+    function() {
+
+        settingsMenu.classList.add(
+            "hidden"
+        );
+
+
+        resumeGameFromMenu();
+    }
+);
+
+
+helpButton.addEventListener(
+    "click",
+    function() {
+
+        settingsMenu.classList.add(
+            "hidden"
+        );
+
+
+        helpMenu.classList.remove(
+            "hidden"
+        );
+    }
+);
+
+
+backToSettingsButton.addEventListener(
+    "click",
+    function() {
+
+        helpMenu.classList.add(
+            "hidden"
+        );
+
+
+        settingsMenu.classList.remove(
+            "hidden"
+        );
+    }
+);
+
+
+musicVolume.addEventListener(
+    "input",
+    function() {
+
+        backgroundMusic.volume =
+            Number(
+                this.value
+            ) / 100;
+
+
+        saveSettings();
+    }
+);
+
+
+sfxVolume.addEventListener(
+    "input",
+    function() {
+
+        updateSFXVolume();
+
+        saveSettings();
+    }
+);
+
+
+musicToggle.addEventListener(
+    "click",
+    function() {
+
+        musicEnabled =
+            !musicEnabled;
+
+
+        musicToggle.textContent =
+            musicEnabled
+                ? "ON"
+                : "OFF";
+
+
+        if (!musicEnabled) {
+
+            backgroundMusic.pause();
+
+        } else if (
+            previousGameState ===
+            "playing"
+        ) {
+
+            backgroundMusic
+                .play()
+                .catch(() => {});
+        }
+
+
+        saveSettings();
+    }
+);
+
+
+sfxToggle.addEventListener(
+    "click",
+    function() {
+
+        sfxEnabled =
+            !sfxEnabled;
+
+
+        sfxToggle.textContent =
+            sfxEnabled
+                ? "ON"
+                : "OFF";
+
+
+        saveSettings();
+    }
+);
+
+
+// ==========================================================
+// LEVEL SELECT
+// ==========================================================
+
+function getLevelStars(
+    levelNumber
+) {
+
+    const completed =
+        localStorage.getItem(
+            "cellBlockEscapeCompleted_" +
+            levelNumber
+        );
+
+
+    return completed
+        ? "★★★"
+        : "☆☆☆";
+}
+
+
+function drawLevelSelect() {
+
+    levelGrid.innerHTML =
+        "";
+
+
+    const start =
+        levelSelectPage *
+        LEVELS_PER_PAGE;
+
+
+    const end =
+        Math.min(
+            start +
+            LEVELS_PER_PAGE,
+            levels.length
+        );
+
+
+    for (
+        let i = start;
+        i < end;
+        i++
+    ) {
+
+        const levelNumber =
+            i + 1;
+
+
+        const button =
+            document.createElement(
+                "button"
+            );
+
+
+        button.className =
+            "level-button";
+
+
+        if (
+            levelNumber >
+            highestUnlockedLevel
+        ) {
+
+            button.classList.add(
+                "locked"
+            );
+
+
+            button.disabled =
+                true;
+
+
+            button.innerHTML =
+                `
+                🔒
+                <span class="level-stars">
+                    ☆☆☆
+                </span>
+                `;
+
+        } else {
+
+            button.innerHTML =
+                `
+                ${levelNumber}
+                <span class="level-stars">
+                    ${getLevelStars(levelNumber)}
+                </span>
+                `;
+
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    selectLevel(i);
+                }
+            );
+        }
+
+
+        if (
+            i === currentLevel
+        ) {
+
+            button.classList.add(
+                "current"
+            );
+        }
+
+
+        levelGrid.appendChild(
+            button
+        );
+    }
+
+
+    const pages =
+        Math.ceil(
+            levels.length /
+            LEVELS_PER_PAGE
+        );
+
+
+    levelPageDisplay.textContent =
+        (levelSelectPage + 1)
+        +
+        " / "
+        +
+        pages;
+
+
+    previousLevelsButton.disabled =
+        levelSelectPage === 0;
+
+
+    nextLevelsButton.disabled =
+        levelSelectPage >=
+        pages - 1;
+}
+
+
+levelSelectButton.addEventListener(
+    "click",
+    function() {
+
+        pauseGameForMenu();
+
+
+        levelSelectPage =
+            Math.floor(
+                currentLevel /
+                LEVELS_PER_PAGE
+            );
+
+
+        drawLevelSelect();
+
+
+        levelSelectMenu.classList.remove(
+            "hidden"
+        );
+    }
+);
+
+
+previousLevelsButton.addEventListener(
+    "click",
+    function() {
+
+        if (
+            levelSelectPage > 0
+        ) {
+
+            levelSelectPage--;
+
+            drawLevelSelect();
+        }
+    }
+);
+
+
+nextLevelsButton.addEventListener(
+    "click",
+    function() {
+
+        const pages =
+            Math.ceil(
+                levels.length /
+                LEVELS_PER_PAGE
+            );
+
+
+        if (
+            levelSelectPage <
+            pages - 1
+        ) {
+
+            levelSelectPage++;
+
+            drawLevelSelect();
+        }
+    }
+);
+
+
+closeLevelSelectButton.addEventListener(
+    "click",
+    function() {
+
+        levelSelectMenu.classList.add(
+            "hidden"
+        );
+
+
+        resumeGameFromMenu();
+    }
+);
+
+
+function selectLevel(index) {
+
+    if (
+        index + 1 >
+        highestUnlockedLevel
+    ) {
+
+        return;
+    }
+
+
+    levelSelectMenu.classList.add(
+        "hidden"
+    );
+
+
+    lives = 3;
+
+    score = 0;
+
+    elapsedTime = 0;
+
+    pausedTime = 0;
+
+    pauseStartedAt = 0;
+
+
+    loadLevel(index);
+
+
+    gameStartTime =
+        Date.now();
+
+
+    gameState =
+        "playing";
+
+
+    if (musicEnabled) {
+
+        backgroundMusic
+            .play()
+            .catch(() => {});
+    }
+}
+
+
+// ==========================================================
 // DRAW FLOOR
-// YELLOW BACKGROUND
 // ==========================================================
 
 function drawFloor(
@@ -1895,20 +3251,14 @@ function drawFloor(
     col
 ) {
 
-    // Checker variation
+    const theme =
+        getLevelTheme();
 
-    if (
+
+    ctx.fillStyle =
         (row + col) % 2 === 0
-    ) {
-
-        ctx.fillStyle =
-            "#d9ad3b";
-
-    } else {
-
-        ctx.fillStyle =
-            "#d2a336";
-    }
+            ? theme.floor1
+            : theme.floor2;
 
 
     ctx.fillRect(
@@ -1919,12 +3269,8 @@ function drawFloor(
     );
 
 
-    // Floor grid
-
     ctx.strokeStyle =
-        "rgba(110,75,15,0.20)";
-
-    ctx.lineWidth = 1;
+        theme.floorLine;
 
 
     ctx.strokeRect(
@@ -1935,41 +3281,40 @@ function drawFloor(
     );
 
 
-    // Small cracks
-
     if (
+        currentLevel + 1 >= 10 &&
         (
             row * 5 +
             col * 7 +
             currentLevel
-        )
-        % 9 === 0
+        ) % 8 === 0
     ) {
 
         ctx.strokeStyle =
-            "rgba(100,65,10,.25)";
+            "rgba(20,20,20,.5)";
 
 
         ctx.beginPath();
 
-
         ctx.moveTo(
-            x + 9,
-            y + 12
+            x + 8,
+            y + 10
         );
 
-
         ctx.lineTo(
-            x + 17,
-            y + 18
+            x + 16,
+            y + 17
         );
 
-
         ctx.lineTo(
-            x + 13,
+            x + 12,
             y + 25
         );
 
+        ctx.lineTo(
+            x + 21,
+            y + 29
+        );
 
         ctx.stroke();
     }
@@ -1977,7 +3322,7 @@ function drawFloor(
 
 
 // ==========================================================
-// DRAW BROWN BLOCK
+// DRAW WALL
 // ==========================================================
 
 function drawWall(
@@ -1987,10 +3332,12 @@ function drawWall(
     col
 ) {
 
-    // Outer brown
+    const theme =
+        getLevelTheme();
+
 
     ctx.fillStyle =
-        "#4b2b16";
+        theme.wallOuter;
 
 
     ctx.fillRect(
@@ -2001,10 +3348,8 @@ function drawWall(
     );
 
 
-    // Main block
-
     ctx.fillStyle =
-        "#754421";
+        theme.wallMain;
 
 
     ctx.fillRect(
@@ -2015,24 +3360,20 @@ function drawWall(
     );
 
 
-    // Highlight
-
     ctx.fillStyle =
-        "#986039";
+        theme.wallLight;
 
 
     ctx.fillRect(
-        x + 6,
-        y + 6,
-        TILE - 12,
+        x + 5,
+        y + 5,
+        TILE - 10,
         5
     );
 
 
-    // Dark bottom
-
     ctx.fillStyle =
-        "#3b210f";
+        theme.wallDark;
 
 
     ctx.fillRect(
@@ -2043,10 +3384,8 @@ function drawWall(
     );
 
 
-    // Brick lines
-
     ctx.strokeStyle =
-        "#4a2813";
+        theme.wallLine;
 
 
     ctx.lineWidth = 2;
@@ -2054,23 +3393,18 @@ function drawWall(
 
     ctx.beginPath();
 
-
     ctx.moveTo(
         x,
         y + TILE / 2
     );
-
 
     ctx.lineTo(
         x + TILE,
         y + TILE / 2
     );
 
-
     ctx.stroke();
 
-
-    // Different brick seam
 
     if (
         (row + col) % 2 === 0
@@ -2106,6 +3440,50 @@ function drawWall(
 
         ctx.stroke();
     }
+
+
+    if (
+        currentLevel + 1 >= 10
+    ) {
+
+        ctx.fillStyle =
+            "#666";
+
+
+        ctx.fillRect(
+            x + 6,
+            y + 6,
+            3,
+            3
+        );
+
+
+        ctx.fillRect(
+            x + TILE - 9,
+            y + 6,
+            3,
+            3
+        );
+
+
+        ctx.fillRect(
+            x + 6,
+            y + TILE - 9,
+            3,
+            3
+        );
+
+
+        ctx.fillRect(
+            x + TILE - 9,
+            y + TILE - 9,
+            3,
+            3
+        );
+    }
+
+
+    ctx.lineWidth = 1;
 }
 
 
@@ -2129,7 +3507,6 @@ function drawMap() {
 
             const x =
                 col * TILE;
-
 
             const y =
                 row * TILE;
@@ -2162,6 +3539,94 @@ function drawMap() {
 
 
 // ==========================================================
+// DRAW HIDING LOCKERS
+// ==========================================================
+
+function drawHidingSpots() {
+
+    for (
+        const spot
+        of hidingSpots
+    ) {
+
+        const x =
+            spot.x;
+
+        const y =
+            spot.y;
+
+
+        ctx.fillStyle =
+            "#252b2e";
+
+
+        ctx.fillRect(
+            x,
+            y,
+            spot.width,
+            spot.height
+        );
+
+
+        ctx.fillStyle =
+            "#626d72";
+
+
+        ctx.fillRect(
+            x + 3,
+            y + 2,
+            spot.width - 6,
+            spot.height - 4
+        );
+
+
+        ctx.fillStyle =
+            "#899398";
+
+
+        ctx.fillRect(
+            x + 6,
+            y + 5,
+            spot.width - 12,
+            4
+        );
+
+
+        ctx.fillStyle =
+            "#30383c";
+
+
+        ctx.fillRect(
+            x + 8,
+            y + 13,
+            spot.width - 16,
+            2
+        );
+
+
+        ctx.fillRect(
+            x + 8,
+            y + 17,
+            spot.width - 16,
+            2
+        );
+
+
+        ctx.fillStyle =
+            "#ffd54f";
+
+
+        ctx.fillRect(
+            x + spot.width - 9,
+            y + 21,
+            3,
+            6
+        );
+    }
+}
+
+
+// ==========================================================
 // DRAW KEY
 // ==========================================================
 
@@ -2179,19 +3644,15 @@ function drawKey() {
     const x =
         keyItem.x + 10;
 
-
     const y =
         keyItem.y + 10;
 
-
-    // Glow
 
     ctx.fillStyle =
         "rgba(255,255,0,.25)";
 
 
     ctx.beginPath();
-
 
     ctx.arc(
         x,
@@ -2201,21 +3662,16 @@ function drawKey() {
         Math.PI * 2
     );
 
-
     ctx.fill();
 
 
-    // Key circle
-
     ctx.strokeStyle =
         "#fff200";
-
 
     ctx.lineWidth = 4;
 
 
     ctx.beginPath();
-
 
     ctx.arc(
         x - 4,
@@ -2225,32 +3681,25 @@ function drawKey() {
         Math.PI * 2
     );
 
-
     ctx.stroke();
 
 
-    // Key shaft
-
     ctx.beginPath();
-
 
     ctx.moveTo(
         x,
         y
     );
 
-
     ctx.lineTo(
         x + 12,
         y + 12
     );
 
-
     ctx.lineTo(
         x + 16,
         y + 8
     );
-
 
     ctx.stroke();
 
@@ -2274,12 +3723,9 @@ function drawExit() {
     const x =
         exitGate.x;
 
-
     const y =
         exitGate.y;
 
-
-    // Door
 
     ctx.fillStyle =
         hasKey
@@ -2295,11 +3741,8 @@ function drawExit() {
     );
 
 
-    // Bars
-
     ctx.strokeStyle =
-        "#281509";
-
+        "#111";
 
     ctx.lineWidth = 3;
 
@@ -2312,24 +3755,19 @@ function drawExit() {
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             x + i,
             y + 4
         );
-
 
         ctx.lineTo(
             x + i,
             y + TILE - 4
         );
 
-
         ctx.stroke();
     }
 
-
-    // Lock
 
     if (!hasKey) {
 
@@ -2364,7 +3802,6 @@ function drawCharacter(
             character.x
         );
 
-
     const y =
         Math.round(
             character.y
@@ -2374,9 +3811,7 @@ function drawCharacter(
     let legMove = 0;
 
 
-    if (
-        character.moving
-    ) {
+    if (character.moving) {
 
         legMove =
             character.walkFrame === 0
@@ -2392,16 +3827,11 @@ function drawCharacter(
     ctx.save();
 
 
-    // ======================================
-    // SHADOW
-    // ======================================
-
     ctx.fillStyle =
-        "rgba(0,0,0,.30)";
+        "rgba(0,0,0,.3)";
 
 
     ctx.beginPath();
-
 
     ctx.ellipse(
         x + 13,
@@ -2413,13 +3843,10 @@ function drawCharacter(
         Math.PI * 2
     );
 
-
     ctx.fill();
 
 
-    // ======================================
     // LEGS
-    // ======================================
 
     ctx.fillStyle =
         isGuard
@@ -2443,9 +3870,7 @@ function drawCharacter(
     );
 
 
-    // ======================================
     // SHOES
-    // ======================================
 
     ctx.fillStyle =
         "#17120f";
@@ -2467,9 +3892,7 @@ function drawCharacter(
     );
 
 
-    // ======================================
     // ARMS
-    // ======================================
 
     ctx.fillStyle =
         "#d69461";
@@ -2491,9 +3914,7 @@ function drawCharacter(
     );
 
 
-    // ======================================
     // BODY
-    // ======================================
 
     ctx.fillStyle =
         isGuard
@@ -2509,13 +3930,7 @@ function drawCharacter(
     );
 
 
-    // ======================================
-    // CLOTHING DETAILS
-    // ======================================
-
     if (isGuard) {
-
-        // Belt
 
         ctx.fillStyle =
             "#181818";
@@ -2528,22 +3943,6 @@ function drawCharacter(
             3
         );
 
-
-        // Buckle
-
-        ctx.fillStyle =
-            "#d0d0d0";
-
-
-        ctx.fillRect(
-            x + 12,
-            y + 19,
-            3,
-            3
-        );
-
-
-        // Badge
 
         ctx.fillStyle =
             "#ffd740";
@@ -2558,8 +3957,6 @@ function drawCharacter(
 
     } else {
 
-        // Prison uniform stripe
-
         ctx.fillStyle =
             "#60310d";
 
@@ -2573,9 +3970,7 @@ function drawCharacter(
     }
 
 
-    // ======================================
     // HEAD
-    // ======================================
 
     ctx.fillStyle =
         "#d69461";
@@ -2589,9 +3984,7 @@ function drawCharacter(
     );
 
 
-    // ======================================
-    // HAIR / GUARD HAT
-    // ======================================
+    // HAT / HAIR
 
     if (isGuard) {
 
@@ -2614,8 +4007,6 @@ function drawCharacter(
             3
         );
 
-
-        // Hat badge
 
         ctx.fillStyle =
             "#ffd740";
@@ -2643,15 +4034,11 @@ function drawCharacter(
     }
 
 
-    // ======================================
-    // FACE DIRECTION
-    // ======================================
+    // EYES
 
     ctx.fillStyle =
         "#17120f";
 
-
-    // DOWN
 
     if (
         character.direction ===
@@ -2672,12 +4059,8 @@ function drawCharacter(
             2,
             2
         );
-    }
 
-
-    // LEFT
-
-    else if (
+    } else if (
         character.direction ===
         "left"
     ) {
@@ -2688,12 +4071,8 @@ function drawCharacter(
             2,
             2
         );
-    }
 
-
-    // RIGHT
-
-    else if (
+    } else if (
         character.direction ===
         "right"
     ) {
@@ -2707,38 +4086,7 @@ function drawCharacter(
     }
 
 
-    // UP intentionally has no eyes
-
-
     ctx.restore();
-}
-
-
-// ==========================================================
-// DRAW PLAYER
-// ==========================================================
-
-function drawPlayer() {
-
-    drawCharacter(
-        player,
-        false
-    );
-}
-
-
-// ==========================================================
-// DRAW GUARD
-// ==========================================================
-
-function drawGuard(
-    guard
-) {
-
-    drawCharacter(
-        guard,
-        true
-    );
 }
 
 
@@ -2746,9 +4094,7 @@ function drawGuard(
 // GUARD ALERT
 // ==========================================================
 
-function drawGuardAlert(
-    guard
-) {
+function drawGuardAlert(guard) {
 
     if (
         guard.state ===
@@ -2770,8 +4116,6 @@ function drawGuardAlert(
         "bold 21px Arial";
 
 
-    // CHASING
-
     if (
         guard.state ===
         "chase"
@@ -2785,13 +4129,10 @@ function drawGuardAlert(
             "!",
             guard.x +
             guard.width / 2,
-
             guard.y - 7
         );
     }
 
-
-    // SEARCHING
 
     if (
         guard.state ===
@@ -2806,7 +4147,6 @@ function drawGuardAlert(
             "?",
             guard.x +
             guard.width / 2,
-
             guard.y - 7
         );
     }
@@ -2817,44 +4157,16 @@ function drawGuardAlert(
 
 
 // ==========================================================
-// DRAW LEVEL LABEL
-// ==========================================================
-
-function drawLevelLabel() {
-
-    ctx.save();
-
-
-    ctx.fillStyle =
-        "rgba(70,35,10,.25)";
-
-
-    ctx.font =
-        "bold 16px monospace";
-
-
-    ctx.fillText(
-        "CELL BLOCK " +
-        (currentLevel + 1),
-
-        50,
-        70
-    );
-
-
-    ctx.restore();
-}
-
-
-// ==========================================================
-// OVERLAYS
+// OVERLAY
 // ==========================================================
 
 function drawOverlay() {
 
     if (
         gameState ===
-        "playing"
+        "playing" ||
+        gameState ===
+        "paused"
     ) {
 
         return;
@@ -2862,7 +4174,7 @@ function drawOverlay() {
 
 
     ctx.fillStyle =
-        "rgba(45,25,8,.82)";
+        "rgba(20,15,10,.85)";
 
 
     ctx.fillRect(
@@ -2877,10 +4189,6 @@ function drawOverlay() {
         "center";
 
 
-    // ======================================
-    // START
-    // ======================================
-
     if (
         gameState ===
         "start"
@@ -2891,18 +4199,18 @@ function drawOverlay() {
 
 
         ctx.font =
-            "bold 46px monospace";
+            "bold 45px monospace";
 
 
         ctx.fillText(
             "CELL BLOCK ESCAPE",
             canvas.width / 2,
-            200
+            180
         );
 
 
         ctx.fillStyle =
-            "#ffffff";
+            "#fff";
 
 
         ctx.font =
@@ -2910,23 +4218,16 @@ function drawOverlay() {
 
 
         ctx.fillText(
-            "Find the key.",
+            "20 LEVEL PRISON ESCAPE",
             canvas.width / 2,
-            275
+            240
         );
 
 
         ctx.fillText(
-            "Avoid the two guards.",
+            "Find the key. Hide. Escape.",
             canvas.width / 2,
-            310
-        );
-
-
-        ctx.fillText(
-            "Reach the exit.",
-            canvas.width / 2,
-            345
+            285
         );
 
 
@@ -2934,23 +4235,15 @@ function drawOverlay() {
             "#fff176";
 
 
-        ctx.font =
-            "bold 22px monospace";
-
-
         ctx.fillText(
             "PRESS ENTER TO START",
             canvas.width / 2,
-            420
+            370
         );
     }
 
 
-    // ======================================
-    // GAME OVER
-    // ======================================
-
-    else if (
+    if (
         gameState ===
         "gameover"
     ) {
@@ -2966,12 +4259,12 @@ function drawOverlay() {
         ctx.fillText(
             "GAME OVER",
             canvas.width / 2,
-            245
+            210
         );
 
 
         ctx.fillStyle =
-            "#ffffff";
+            "#fff";
 
 
         ctx.font =
@@ -2979,9 +4272,18 @@ function drawOverlay() {
 
 
         ctx.fillText(
-            "The guards caught you.",
+            "LEVEL: " +
+            (currentLevel + 1),
             canvas.width / 2,
-            310
+            275
+        );
+
+
+        ctx.fillText(
+            "SCORE: " +
+            score,
+            canvas.width / 2,
+            315
         );
 
 
@@ -2992,16 +4294,12 @@ function drawOverlay() {
         ctx.fillText(
             "PRESS ENTER TO TRY AGAIN",
             canvas.width / 2,
-            375
+            390
         );
     }
 
 
-    // ======================================
-    // VICTORY
-    // ======================================
-
-    else if (
+    if (
         gameState ===
         "victory"
     ) {
@@ -3011,28 +4309,28 @@ function drawOverlay() {
 
 
         ctx.font =
-            "bold 52px monospace";
+            "bold 48px monospace";
 
 
         ctx.fillText(
             "YOU ESCAPED!",
             canvas.width / 2,
-            235
+            150
         );
 
 
         ctx.fillStyle =
-            "#ffffff";
+            "#fff";
 
 
         ctx.font =
-            "21px monospace";
+            "20px monospace";
 
 
         ctx.fillText(
-            "All 10 cell blocks cleared!",
+            "ALL 20 LEVELS CLEARED",
             canvas.width / 2,
-            305
+            210
         );
 
 
@@ -3041,9 +4339,37 @@ function drawOverlay() {
 
 
         ctx.fillText(
+            "TIME: " +
+            timerDisplay.textContent,
+            canvas.width / 2,
+            265
+        );
+
+
+        ctx.fillText(
+            "SCORE: " +
+            score,
+            canvas.width / 2,
+            305
+        );
+
+
+        ctx.fillText(
+            "HIGH SCORE: " +
+            highScore,
+            canvas.width / 2,
+            345
+        );
+
+
+        ctx.fillStyle =
+            "#fff";
+
+
+        ctx.fillText(
             "PRESS ENTER TO PLAY AGAIN",
             canvas.width / 2,
-            375
+            415
         );
     }
 
@@ -3054,7 +4380,57 @@ function drawOverlay() {
 
 
 // ==========================================================
-// UPDATE GAME
+// HIDDEN MESSAGE
+// ==========================================================
+
+function drawHiddenMessage() {
+
+    if (!playerHidden) {
+
+        return;
+    }
+
+
+    ctx.save();
+
+
+    ctx.fillStyle =
+        "rgba(0,0,0,.7)";
+
+
+    ctx.fillRect(
+        canvas.width / 2 - 150,
+        12,
+        300,
+        35
+    );
+
+
+    ctx.fillStyle =
+        "#69f0ae";
+
+
+    ctx.textAlign =
+        "center";
+
+
+    ctx.font =
+        "bold 15px monospace";
+
+
+    ctx.fillText(
+        "HIDDEN - PRESS E TO LEAVE",
+        canvas.width / 2,
+        35
+    );
+
+
+    ctx.restore();
+}
+
+
+// ==========================================================
+// UPDATE
 // ==========================================================
 
 function update() {
@@ -3068,6 +4444,8 @@ function update() {
     }
 
 
+    updateTimer();
+
     updatePlayer();
 
     updateKey();
@@ -3079,7 +4457,7 @@ function update() {
 
 
 // ==========================================================
-// DRAW GAME
+// DRAW
 // ==========================================================
 
 function draw() {
@@ -3094,14 +4472,12 @@ function draw() {
 
     drawMap();
 
-    drawLevelLabel();
+    drawHidingSpots();
 
     drawExit();
 
     drawKey();
 
-
-    // Guards
 
     for (
         const guard
@@ -3113,25 +4489,30 @@ function draw() {
         );
 
 
-        drawGuard(
-            guard
+        drawCharacter(
+            guard,
+            true
         );
     }
 
 
-    // Prisoner
+    if (!playerHidden) {
 
-    drawPlayer();
+        drawCharacter(
+            player,
+            false
+        );
+    }
 
 
-    // Start/game over/victory
+    drawHiddenMessage();
 
     drawOverlay();
 }
 
 
 // ==========================================================
-// GAME LOOP
+// LOOP
 // ==========================================================
 
 function gameLoop() {
@@ -3148,8 +4529,10 @@ function gameLoop() {
 
 
 // ==========================================================
-// START GAME
+// START
 // ==========================================================
+
+loadSettings();
 
 loadLevel(0);
 

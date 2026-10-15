@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -11,75 +10,416 @@
 
     <title>Cell Block Escape</title>
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <div class="game-container">
+<div class="game-container">
 
-        <header>
-            <h1>CELL BLOCK ESCAPE</h1>
+    <header class="game-header">
+        <h1>CELL BLOCK ESCAPE</h1>
 
-            <p>
-                Find the key. Avoid the guards. Escape!
-            </p>
-        </header>
+        <p>
+            Find the key. Hide from the guards. Escape.
+        </p>
+    </header>
 
 
-        <div class="hud">
+    <!-- ====================================== -->
+    <!-- HUD -->
+    <!-- ====================================== -->
 
-            <div>
-                LEVEL:
-                <span id="levelDisplay">1</span>/10
-            </div>
+    <div class="hud">
 
-            <div>
-                DIFFICULTY:
-                <span id="difficultyDisplay">EASY</span>
-            </div>
-
-            <div>
-                🔑
-                <span id="keyDisplay">NOT FOUND</span>
-            </div>
-
-            <div>
-                🚪
-                <span id="gateDisplay">LOCKED</span>
-            </div>
-
-            <div>
-                ❤️
-                <span id="livesDisplay">3</span>
-            </div>
-
+        <div>
+            LEVEL:
+            <span id="levelDisplay">1</span>
+            /
+            <span id="totalLevelsDisplay">20</span>
         </div>
 
+        <div>
+            AREA:
+            <span id="areaDisplay">OLD PRISON</span>
+        </div>
 
-        <canvas id="gameCanvas"></canvas>
+        <div>
+            DIFFICULTY:
+            <span id="difficultyDisplay">EASY</span>
+        </div>
 
+        <div>
+            ❤️
+            <span id="livesDisplay">3</span>
+        </div>
 
-        <div class="controls">
+        <div>
+            🔑
+            <span id="keyDisplay">NOT FOUND</span>
+        </div>
 
-            <p>
-                WASD / Arrow Keys = Move
-            </p>
+        <div>
+            🚪
+            <span id="gateDisplay">LOCKED</span>
+        </div>
 
-            <p>
-                R = Restart Level
-            </p>
+        <div>
+            ⏱
+            <span id="timerDisplay">00:00</span>
+        </div>
 
+        <div>
+            ⭐
+            <span id="scoreDisplay">0</span>
+        </div>
+
+        <div>
+            🏆
+            <span id="highScoreDisplay">0</span>
         </div>
 
     </div>
 
 
-    <script src="game.js"></script>
+    <!-- ====================================== -->
+    <!-- GAME BUTTONS -->
+    <!-- ====================================== -->
+
+    <div class="game-buttons">
+
+        <button id="levelSelectButton">
+            🗺 LEVELS
+        </button>
+
+        <button id="settingsButton">
+            ⚙ SETTINGS
+        </button>
+
+    </div>
+
+
+    <!-- ====================================== -->
+    <!-- GAME -->
+    <!-- ====================================== -->
+
+    <canvas id="gameCanvas"></canvas>
+
+
+    <div class="controls">
+
+        <span>
+            WASD / Arrows = Move
+        </span>
+
+        <span>
+            E = Hide
+        </span>
+
+        <span>
+            R = Restart
+        </span>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================== -->
+<!-- SETTINGS -->
+<!-- ========================================== -->
+
+<div
+    id="settingsMenu"
+    class="menu-overlay hidden"
+>
+
+    <div class="menu-box">
+
+        <h2>⚙ SETTINGS</h2>
+
+
+        <label for="musicVolume">
+            Music Volume
+        </label>
+
+        <input
+            id="musicVolume"
+            type="range"
+            min="0"
+            max="100"
+            value="35"
+        >
+
+
+        <label for="sfxVolume">
+            Sound Effects
+        </label>
+
+        <input
+            id="sfxVolume"
+            type="range"
+            min="0"
+            max="100"
+            value="70"
+        >
+
+
+        <div class="setting-row">
+
+            <span>Music</span>
+
+            <button id="musicToggle">
+                ON
+            </button>
+
+        </div>
+
+
+        <div class="setting-row">
+
+            <span>Sound Effects</span>
+
+            <button id="sfxToggle">
+                ON
+            </button>
+
+        </div>
+
+
+        <button
+            id="helpButton"
+            class="full-button"
+        >
+            ❓ HOW TO PLAY
+        </button>
+
+
+        <button
+            id="resumeButton"
+            class="full-button"
+        >
+            RESUME GAME
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================== -->
+<!-- HELP -->
+<!-- ========================================== -->
+
+<div
+    id="helpMenu"
+    class="menu-overlay hidden"
+>
+
+    <div class="menu-box help-box">
+
+        <h2>❓ HOW TO PLAY</h2>
+
+
+        <section>
+            <h3>🎯 OBJECTIVE</h3>
+
+            <p>
+                Escape all 20 prison levels.
+            </p>
+
+            <p>
+                Find the 🔑 key before reaching
+                the 🚪 exit gate.
+            </p>
+        </section>
+
+
+        <section>
+            <h3>🎮 CONTROLS</h3>
+
+            <div class="help-control">
+                <kbd>W A S D</kbd>
+                <span>Move prisoner</span>
+            </div>
+
+            <div class="help-control">
+                <kbd>↑ ↓ ← →</kbd>
+                <span>Move prisoner</span>
+            </div>
+
+            <div class="help-control">
+                <kbd>E</kbd>
+                <span>Hide / leave locker</span>
+            </div>
+
+            <div class="help-control">
+                <kbd>R</kbd>
+                <span>Restart level</span>
+            </div>
+
+            <div class="help-control">
+                <kbd>ENTER</kbd>
+                <span>Start / restart game</span>
+            </div>
+        </section>
+
+
+        <section>
+            <h3>🗄️ HIDING</h3>
+
+            <p>
+                Walk onto a locker and press E.
+                Guards cannot see or catch you
+                while you are hidden.
+            </p>
+
+            <p>
+                Press E again to leave.
+            </p>
+        </section>
+
+
+        <section>
+            <h3>👮 GUARDS</h3>
+
+            <p>
+                Guards patrol the prison.
+            </p>
+
+            <p>
+                <strong class="danger">!</strong>
+                means the guard sees you.
+            </p>
+
+            <p>
+                <strong class="warning">?</strong>
+                means the guard is searching
+                for you.
+            </p>
+        </section>
+
+
+        <section>
+            <h3>🔑 KEY & 🚪 EXIT</h3>
+
+            <p>
+                The red exit is locked.
+            </p>
+
+            <p>
+                Collect the key and the exit
+                becomes green.
+            </p>
+        </section>
+
+
+        <section>
+            <h3>❤️ LIVES</h3>
+
+            <p>
+                You have 3 lives.
+                Getting caught removes one.
+            </p>
+        </section>
+
+
+        <section>
+            <h3>⏱ SCORE</h3>
+
+            <p>
+                Complete levels and keep your
+                lives to earn more points.
+            </p>
+
+            <p>
+                Finish all 20 levels quickly
+                for a time bonus.
+            </p>
+        </section>
+
+
+        <section>
+            <h3>🗺 LEVELS</h3>
+
+            <p>
+                Complete a level to unlock
+                the next level.
+            </p>
+
+            <p>
+                Levels 10–20 take place in
+                Maximum Security.
+            </p>
+        </section>
+
+
+        <button
+            id="backToSettingsButton"
+            class="full-button"
+        >
+            ← BACK TO SETTINGS
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================== -->
+<!-- LEVEL SELECT -->
+<!-- ========================================== -->
+
+<div
+    id="levelSelectMenu"
+    class="menu-overlay hidden"
+>
+
+    <div class="menu-box level-box">
+
+        <h2>SELECT LEVEL</h2>
+
+        <p class="level-area-title">
+            CELL BLOCK ESCAPE
+        </p>
+
+
+        <div
+            id="levelGrid"
+            class="level-grid"
+        ></div>
+
+
+        <div class="level-navigation">
+
+            <button id="previousLevelsButton">
+                ◀
+            </button>
+
+            <span id="levelPageDisplay">
+                1 / 2
+            </span>
+
+            <button id="nextLevelsButton">
+                ▶
+            </button>
+
+        </div>
+
+
+        <button
+            id="closeLevelSelectButton"
+            class="full-button"
+        >
+            BACK TO GAME
+        </button>
+
+    </div>
+
+</div>
+
+
+<script src="game.js"></script>
 
 </body>
-
 </html>
