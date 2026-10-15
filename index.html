@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Cell Block Escape</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+    <div class="game-container">
+
+        <header>
+            <h1>CELL BLOCK ESCAPE</h1>
+
+            <p>
+                Find the key. Avoid the guards. Escape!
+            </p>
+        </header>
+
+
+        <div class="hud">
+
+            <div>
+                LEVEL:
+                <span id="levelDisplay">1</span>/10
+            </div>
+
+            <div>
+                DIFFICULTY:
+                <span id="difficultyDisplay">EASY</span>
+            </div>
+
+            <div>
+                🔑
+                <span id="keyDisplay">NOT FOUND</span>
+            </div>
+
+            <div>
+                🚪
+                <span id="gateDisplay">LOCKED</span>
+            </div>
+
+            <div>
+                ❤️
+                <span id="livesDisplay">3</span>
+            </div>
+
+        </div>
+
+
+        <canvas id="gameCanvas"></canvas>
+
+
+        <div class="controls">
+
+            <p>
+                WASD / Arrow Keys = Move
+            </p>
+
+            <p>
+                R = Restart Level
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <script src="game.js"></script>
+
+</body>
+
+</html>
