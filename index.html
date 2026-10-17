@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -10,7 +11,10 @@
 
     <title>Cell Block Escape</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
 
 <body>
@@ -18,21 +22,23 @@
 <div class="game-container">
 
     <header class="game-header">
+
         <h1>CELL BLOCK ESCAPE</h1>
 
         <p>
-            Find the key. Hide from the guards. Escape.
+            Find the key. Avoid the guards. Escape.
         </p>
+
     </header>
 
 
-    <!-- ====================================== -->
+    <!-- ===================================== -->
     <!-- HUD -->
-    <!-- ====================================== -->
+    <!-- ===================================== -->
 
     <div class="hud">
 
-        <div>
+        <div id="levelHud">
             LEVEL:
             <span id="levelDisplay">1</span>
             /
@@ -40,28 +46,23 @@
         </div>
 
         <div>
+            MODE:
+            <span id="modeDisplay">1 PLAYER</span>
+        </div>
+
+        <div>
             AREA:
             <span id="areaDisplay">OLD PRISON</span>
         </div>
 
-        <div>
+        <div id="difficultyHud">
             DIFFICULTY:
             <span id="difficultyDisplay">EASY</span>
         </div>
 
-        <div>
+        <div id="livesHud">
             ❤️
             <span id="livesDisplay">3</span>
-        </div>
-
-        <div>
-            🔑
-            <span id="keyDisplay">NOT FOUND</span>
-        </div>
-
-        <div>
-            🚪
-            <span id="gateDisplay">LOCKED</span>
         </div>
 
         <div>
@@ -69,12 +70,12 @@
             <span id="timerDisplay">00:00</span>
         </div>
 
-        <div>
+        <div id="scoreHud">
             ⭐
             <span id="scoreDisplay">0</span>
         </div>
 
-        <div>
+        <div id="highScoreHud">
             🏆
             <span id="highScoreDisplay">0</span>
         </div>
@@ -82,14 +83,60 @@
     </div>
 
 
-    <!-- ====================================== -->
+    <!-- MULTIPLAYER HUD -->
+
+    <div
+        id="multiplayerHud"
+        class="multiplayer-hud hidden"
+    >
+
+        <div class="p1-status">
+
+            <strong>PLAYER 1</strong>
+
+            <span>
+                🔑
+                <b id="p1KeyDisplay">
+                    NOT FOUND
+                </b>
+            </span>
+
+        </div>
+
+
+        <div class="race-label">
+            FIRST OUT WINS
+        </div>
+
+
+        <div class="p2-status">
+
+            <strong>PLAYER 2</strong>
+
+            <span>
+                🔑
+                <b id="p2KeyDisplay">
+                    NOT FOUND
+                </b>
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================== -->
     <!-- GAME BUTTONS -->
-    <!-- ====================================== -->
+    <!-- ===================================== -->
 
     <div class="game-buttons">
 
         <button id="levelSelectButton">
             🗺 LEVELS
+        </button>
+
+        <button id="mainMenuButton">
+            🏠 MAIN MENU
         </button>
 
         <button id="settingsButton">
@@ -99,14 +146,16 @@
     </div>
 
 
-    <!-- ====================================== -->
-    <!-- GAME -->
-    <!-- ====================================== -->
+    <!-- ===================================== -->
+    <!-- CANVAS -->
+    <!-- ===================================== -->
 
     <canvas id="gameCanvas"></canvas>
 
 
-    <div class="controls">
+    <!-- CONTROLS -->
+
+    <div id="singleControls" class="controls">
 
         <span>
             WASD / Arrows = Move
@@ -122,12 +171,93 @@
 
     </div>
 
+
+    <div
+        id="multiControls"
+        class="controls hidden"
+    >
+
+        <span class="p1-text">
+            P1: WASD + E
+        </span>
+
+        <span>
+            FIRST OUT WINS
+        </span>
+
+        <span class="p2-text">
+            P2: Arrows + Enter
+        </span>
+
+    </div>
+
 </div>
 
 
-<!-- ========================================== -->
+<!-- ========================================= -->
+<!-- GAME MODE MENU -->
+<!-- ========================================= -->
+
+<div
+    id="gameModeMenu"
+    class="menu-overlay"
+>
+
+    <div class="menu-box game-mode-box">
+
+        <h1>
+            CELL BLOCK ESCAPE
+        </h1>
+
+        <p class="menu-subtitle">
+            CHOOSE GAME MODE
+        </p>
+
+
+        <button
+            id="onePlayerButton"
+            class="mode-button"
+        >
+            👤 1 PLAYER
+        </button>
+
+
+        <button
+            id="twoPlayerButton"
+            class="mode-button player-two-button"
+        >
+            👥 2 PLAYER
+        </button>
+
+
+        <div class="mode-description">
+
+            <p>
+                🔑 Find your key
+            </p>
+
+            <p>
+                👮 Avoid the guards
+            </p>
+
+            <p>
+                🗄 Hide in lockers
+            </p>
+
+            <p>
+                🚪 Reach the exit
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
 <!-- SETTINGS -->
-<!-- ========================================== -->
+<!-- ========================================= -->
 
 <div
     id="settingsMenu"
@@ -136,7 +266,9 @@
 
     <div class="menu-box">
 
-        <h2>⚙ SETTINGS</h2>
+        <h2>
+            ⚙ SETTINGS
+        </h2>
 
 
         <label for="musicVolume">
@@ -196,8 +328,24 @@
 
 
         <button
-            id="resumeButton"
+            id="aboutButton"
             class="full-button"
+        >
+            🎮 ABOUT GAME
+        </button>
+
+
+        <button
+            id="creditsButton"
+            class="full-button"
+        >
+            🏆 CREDITS
+        </button>
+
+
+        <button
+            id="resumeButton"
+            class="full-button green-button"
         >
             RESUME GAME
         </button>
@@ -207,150 +355,135 @@
 </div>
 
 
-<!-- ========================================== -->
-<!-- HELP -->
-<!-- ========================================== -->
+<!-- ========================================= -->
+<!-- HOW TO PLAY -->
+<!-- ========================================= -->
 
 <div
     id="helpMenu"
     class="menu-overlay hidden"
 >
 
-    <div class="menu-box help-box">
+    <div class="menu-box information-box">
 
-        <h2>❓ HOW TO PLAY</h2>
+        <h2>
+            ❓ HOW TO PLAY
+        </h2>
 
 
         <section>
+
             <h3>🎯 OBJECTIVE</h3>
 
             <p>
-                Escape all 20 prison levels.
+                Find your key, avoid the guards
+                and reach the prison exit.
             </p>
 
-            <p>
-                Find the 🔑 key before reaching
-                the 🚪 exit gate.
-            </p>
         </section>
 
 
         <section>
-            <h3>🎮 CONTROLS</h3>
 
-            <div class="help-control">
-                <kbd>W A S D</kbd>
-                <span>Move prisoner</span>
-            </div>
+            <h3>👤 PLAYER 1</h3>
 
-            <div class="help-control">
-                <kbd>↑ ↓ ← →</kbd>
-                <span>Move prisoner</span>
-            </div>
+            <p>
+                W A S D = Move
+            </p>
 
-            <div class="help-control">
-                <kbd>E</kbd>
-                <span>Hide / leave locker</span>
-            </div>
+            <p>
+                E = Hide / Leave Locker
+            </p>
 
-            <div class="help-control">
-                <kbd>R</kbd>
-                <span>Restart level</span>
-            </div>
-
-            <div class="help-control">
-                <kbd>ENTER</kbd>
-                <span>Start / restart game</span>
-            </div>
         </section>
 
 
         <section>
-            <h3>🗄️ HIDING</h3>
+
+            <h3>👥 PLAYER 2</h3>
 
             <p>
-                Walk onto a locker and press E.
-                Guards cannot see or catch you
-                while you are hidden.
+                Arrow Keys = Move
             </p>
 
             <p>
-                Press E again to leave.
+                Enter = Hide / Leave Locker
             </p>
+
         </section>
 
 
         <section>
+
+            <h3>🔑 KEYS</h3>
+
+            <p>
+                You must collect your key
+                before your exit opens.
+            </p>
+
+            <p>
+                In 2 Player mode each player
+                has their own key.
+            </p>
+
+        </section>
+
+
+        <section>
+
+            <h3>🗄 HIDING</h3>
+
+            <p>
+                Walk onto a locker and press
+                your hide button.
+            </p>
+
+            <p>
+                Guards cannot see you while
+                you are hidden.
+            </p>
+
+        </section>
+
+
+        <section>
+
             <h3>👮 GUARDS</h3>
 
             <p>
-                Guards patrol the prison.
+                <strong class="danger">
+                    !
+                </strong>
+
+                Guard sees a prisoner.
             </p>
 
             <p>
-                <strong class="danger">!</strong>
-                means the guard sees you.
+                <strong class="warning">
+                    ?
+                </strong>
+
+                Guard is searching.
             </p>
 
-            <p>
-                <strong class="warning">?</strong>
-                means the guard is searching
-                for you.
-            </p>
         </section>
 
 
         <section>
-            <h3>🔑 KEY & 🚪 EXIT</h3>
+
+            <h3>🏁 2 PLAYER RACE</h3>
 
             <p>
-                The red exit is locked.
+                A random map is selected from
+                20 multiplayer maps.
             </p>
 
-            <p>
-                Collect the key and the exit
-                becomes green.
-            </p>
-        </section>
-
-
-        <section>
-            <h3>❤️ LIVES</h3>
-
-            <p>
-                You have 3 lives.
-                Getting caught removes one.
-            </p>
-        </section>
-
-
-        <section>
-            <h3>⏱ SCORE</h3>
-
-            <p>
-                Complete levels and keep your
-                lives to earn more points.
+            <p class="winner-text">
+                The first player to collect
+                their key and escape wins!
             </p>
 
-            <p>
-                Finish all 20 levels quickly
-                for a time bonus.
-            </p>
-        </section>
-
-
-        <section>
-            <h3>🗺 LEVELS</h3>
-
-            <p>
-                Complete a level to unlock
-                the next level.
-            </p>
-
-            <p>
-                Levels 10–20 take place in
-                Maximum Security.
-            </p>
         </section>
 
 
@@ -366,9 +499,310 @@
 </div>
 
 
-<!-- ========================================== -->
+<!-- ========================================= -->
+<!-- ABOUT -->
+<!-- ========================================= -->
+
+<div
+    id="aboutMenu"
+    class="menu-overlay hidden"
+>
+
+    <div class="menu-box information-box">
+
+        <h2>
+            🎮 ABOUT GAME
+        </h2>
+
+
+        <div class="about-title">
+            CELL BLOCK ESCAPE
+        </div>
+
+
+        <section>
+
+            <h3>🔒 THE GAME</h3>
+
+            <p>
+                Cell Block Escape is a
+                top-down 2D prison escape
+                game.
+            </p>
+
+            <p>
+                Explore prison mazes, avoid
+                guards, hide in lockers,
+                collect keys and escape.
+            </p>
+
+        </section>
+
+
+        <section>
+
+            <h3>👤 1 PLAYER</h3>
+
+            <p>
+                Escape through a 20-level
+                campaign.
+            </p>
+
+            <p>
+                Levels 1–9 take place in the
+                Old Prison.
+            </p>
+
+            <p>
+                Levels 10–20 take place in
+                Maximum Security.
+            </p>
+
+        </section>
+
+
+        <section>
+
+            <h3>👥 2 PLAYER</h3>
+
+            <p>
+                Two prisoners race on the
+                same keyboard.
+            </p>
+
+            <p>
+                One of 20 multiplayer maps
+                is selected randomly for
+                every match.
+            </p>
+
+            <p>
+                Each player has their own
+                key and exit.
+            </p>
+
+            <p class="winner-text">
+                🏆 FIRST PLAYER OUT WINS!
+            </p>
+
+        </section>
+
+
+        <section>
+
+            <h3>👮 STEALTH</h3>
+
+            <p>
+                Guards patrol the prison,
+                investigate the last place
+                they saw a prisoner and
+                chase visible prisoners.
+            </p>
+
+        </section>
+
+
+        <button
+            id="backFromAboutButton"
+            class="full-button"
+        >
+            ← BACK TO SETTINGS
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- CREDITS -->
+<!-- ========================================= -->
+
+<div
+    id="creditsMenu"
+    class="menu-overlay hidden"
+>
+
+    <div class="menu-box information-box credits-box">
+
+        <h2>
+            🏆 CREDITS
+        </h2>
+
+
+        <div class="about-title">
+            CELL BLOCK ESCAPE
+        </div>
+
+
+        <p class="credits-subtitle">
+            A 2D Prison Escape Game
+        </p>
+
+
+        <section>
+
+            <h3>🎮 GAME DEVELOPMENT</h3>
+
+            <p>
+                Created and Developed By
+            </p>
+
+            <p class="credit-name">
+                Keneth Roque C. Adlawon
+            </p>
+    
+        <p class="credit-name">
+            Rence G. Gubalane
+        </p>
+        
+        <p class="credit-name">
+            Ashley Hipolan
+        </p>
+        </section>
+
+
+        <section>
+
+            <h3>💻 PROGRAMMING</h3>
+
+            <p>
+                HTML
+            </p>
+
+            <p>
+                CSS
+            </p>
+
+            <p>
+                JavaScript
+            </p>
+
+            <p>
+                HTML5 Canvas
+            </p>
+
+        </section>
+
+
+        <section>
+
+            <h3>🎨 GAME DESIGN</h3>
+
+            <p>
+                Level Design;
+               
+            </p>
+          <p>
+                Ashley Hipolan
+            </p>
+            <br>
+            <p>
+                Prison Environment;
+               
+            </p>
+           <p>
+                Rence G. Gubalane
+            </p>
+            <br>
+            <p>
+                Character Design;
+              
+            </p>
+             <p>
+                Keneth Roque C. Adlawon
+            </p>
+            <br>
+            <p>
+                User Interface Design;
+            </p>
+            <p>
+             Keneth Roque C. Adlawon
+            </p>
+        </section>
+
+
+        <section>
+
+            <h3>🎵 AUDIO</h3>
+
+            <p>
+               background music Silent Vault Appproach :AI generated music
+            </p>
+           <br>
+           <p>
+            escape sound effect :collect ring By:Wolfy Sanic
+           </p>
+          <br>
+           <p>
+            keysound effect : y key :freesound community
+           </p>
+           <br>
+           <p>
+            allert sound effect :critical allert By: musicnation782
+           </p>
+           <br>
+           <p>
+            caught sound effect :metallic By: Freesound community
+            </p>
+            <br>
+            <p>
+                footstep sound effect :pop by: dragon studio & swoosh sound effect by: dheerajakam4jor
+        </section>
+
+
+        <section>
+
+            <h3>🛠 DEVELOPMENT TOOLS</h3>
+
+            <p>
+                Visual Studio Code
+            </p>
+
+            <p>
+                Git
+            </p>
+
+            <p>
+                GitHub
+            </p>
+
+        </section>
+
+
+        <section>
+
+            <h3>💡 SPECIAL THANKS</h3>
+
+            <p>
+                Thanks to everyone who
+                tested and supported
+                Cell Block Escape.
+            </p>
+
+        </section>
+
+
+        <div class="version">
+            CELL BLOCK ESCAPE — VERSION 1.0
+        </div>
+
+
+        <button
+            id="backFromCreditsButton"
+            class="full-button"
+        >
+            ← BACK TO SETTINGS
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
 <!-- LEVEL SELECT -->
-<!-- ========================================== -->
+<!-- ========================================= -->
 
 <div
     id="levelSelectMenu"
@@ -377,10 +811,12 @@
 
     <div class="menu-box level-box">
 
-        <h2>SELECT LEVEL</h2>
+        <h2>
+            SELECT LEVEL
+        </h2>
 
-        <p class="level-area-title">
-            CELL BLOCK ESCAPE
+        <p class="menu-subtitle">
+            1 PLAYER CAMPAIGN
         </p>
 
 
@@ -418,6 +854,10 @@
 
 </div>
 
+
+<!-- MAPS MUST LOAD FIRST -->
+
+<script src="maps.js"></script>
 
 <script src="game.js"></script>
 

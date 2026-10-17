@@ -15,20 +15,16 @@ const ctx =
 
 ctx.imageSmoothingEnabled = false;
 
-
 const TILE = 40;
 const COLS = 20;
 const ROWS = 15;
 
-canvas.width =
-    COLS * TILE;
-
-canvas.height =
-    ROWS * TILE;
+canvas.width = COLS * TILE;
+canvas.height = ROWS * TILE;
 
 
 // ==========================================================
-// HUD
+// ELEMENTS
 // ==========================================================
 
 const levelDisplay =
@@ -36,6 +32,9 @@ const levelDisplay =
 
 const totalLevelsDisplay =
     document.getElementById("totalLevelsDisplay");
+
+const modeDisplay =
+    document.getElementById("modeDisplay");
 
 const areaDisplay =
     document.getElementById("areaDisplay");
@@ -46,12 +45,6 @@ const difficultyDisplay =
 const livesDisplay =
     document.getElementById("livesDisplay");
 
-const keyDisplay =
-    document.getElementById("keyDisplay");
-
-const gateDisplay =
-    document.getElementById("gateDisplay");
-
 const timerDisplay =
     document.getElementById("timerDisplay");
 
@@ -61,13 +54,43 @@ const scoreDisplay =
 const highScoreDisplay =
     document.getElementById("highScoreDisplay");
 
+const multiplayerHud =
+    document.getElementById("multiplayerHud");
 
-// ==========================================================
-// SETTINGS
-// ==========================================================
+const p1KeyDisplay =
+    document.getElementById("p1KeyDisplay");
+
+const p2KeyDisplay =
+    document.getElementById("p2KeyDisplay");
+
+const levelSelectButton =
+    document.getElementById("levelSelectButton");
+
+const mainMenuButton =
+    document.getElementById("mainMenuButton");
 
 const settingsButton =
     document.getElementById("settingsButton");
+
+const singleControls =
+    document.getElementById("singleControls");
+
+const multiControls =
+    document.getElementById("multiControls");
+
+
+// ==========================================================
+// MENUS
+// ==========================================================
+
+const gameModeMenu =
+    document.getElementById("gameModeMenu");
+
+const onePlayerButton =
+    document.getElementById("onePlayerButton");
+
+const twoPlayerButton =
+    document.getElementById("twoPlayerButton");
 
 const settingsMenu =
     document.getElementById("settingsMenu");
@@ -87,11 +110,6 @@ const musicToggle =
 const sfxToggle =
     document.getElementById("sfxToggle");
 
-
-// ==========================================================
-// HELP
-// ==========================================================
-
 const helpButton =
     document.getElementById("helpButton");
 
@@ -99,54 +117,43 @@ const helpMenu =
     document.getElementById("helpMenu");
 
 const backToSettingsButton =
-    document.getElementById(
-        "backToSettingsButton"
-    );
+    document.getElementById("backToSettingsButton");
 
+const aboutButton =
+    document.getElementById("aboutButton");
 
-// ==========================================================
-// LEVEL SELECT
-// ==========================================================
+const aboutMenu =
+    document.getElementById("aboutMenu");
 
-const levelSelectButton =
-    document.getElementById(
-        "levelSelectButton"
-    );
+const backFromAboutButton =
+    document.getElementById("backFromAboutButton");
+
+const creditsButton =
+    document.getElementById("creditsButton");
+
+const creditsMenu =
+    document.getElementById("creditsMenu");
+
+const backFromCreditsButton =
+    document.getElementById("backFromCreditsButton");
 
 const levelSelectMenu =
-    document.getElementById(
-        "levelSelectMenu"
-    );
+    document.getElementById("levelSelectMenu");
 
 const levelGrid =
-    document.getElementById(
-        "levelGrid"
-    );
+    document.getElementById("levelGrid");
 
 const previousLevelsButton =
-    document.getElementById(
-        "previousLevelsButton"
-    );
+    document.getElementById("previousLevelsButton");
 
 const nextLevelsButton =
-    document.getElementById(
-        "nextLevelsButton"
-    );
+    document.getElementById("nextLevelsButton");
 
 const levelPageDisplay =
-    document.getElementById(
-        "levelPageDisplay"
-    );
+    document.getElementById("levelPageDisplay");
 
 const closeLevelSelectButton =
-    document.getElementById(
-        "closeLevelSelectButton"
-    );
-
-
-const LEVELS_PER_PAGE = 12;
-
-let levelSelectPage = 0;
+    document.getElementById("closeLevelSelectButton");
 
 
 // ==========================================================
@@ -154,508 +161,74 @@ let levelSelectPage = 0;
 // ==========================================================
 
 const backgroundMusic =
-    new Audio(
-        "audio/prison-theme.mp3"
-    );
+    new Audio("audio/prison-theme.mp3");
 
 const keySound =
-    new Audio(
-        "audio/key.mp3"
-    );
+    new Audio("audio/key.mp3");
 
 const caughtSound =
-    new Audio(
-        "audio/caught.mp3"
-    );
+    new Audio("audio/caught.mp3");
 
 const escapeSound =
-    new Audio(
-        "audio/escape.mp3"
-    );
+    new Audio("audio/escape.mp3");
 
 const alertSound =
-    new Audio(
-        "audio/alert.mp3"
-    );
+    new Audio("audio/alert.mp3");
 
 const footstep1 =
-    new Audio(
-        "audio/footstep1.mp3"
-    );
+    new Audio("audio/footstep1.mp3");
 
 const footstep2 =
-    new Audio(
-        "audio/footstep2.mp3"
-    );
-
+    new Audio("audio/footstep2.mp3");
 
 backgroundMusic.loop = true;
 
-
 let musicEnabled = true;
-
 let sfxEnabled = true;
-
-
-let footstepTimer = 0;
-
-let footstepNumber = 0;
-
-const FOOTSTEP_DELAY = 300;
-
-
-// ==========================================================
-// LEVELS
-//
-// # wall
-// . floor
-// P player
-// 1 guard
-// 2 guard
-// K key
-// E exit
-// H hiding locker
-// ==========================================================
-
-const levels = [
-
-    // LEVEL 1
-    [
-        "####################",
-        "#P.................#",
-        "#.######.########..#",
-        "#......#...........#",
-        "#.####.#.#########.#",
-        "#......#...........#",
-        "#.########.######..#",
-        "#...K....#.........#",
-        "#.######.#.######..#",
-        "#.#......#......#..#",
-        "#.#.###H######..#..#",
-        "#.......1..........#",
-        "#.###########.###..#",
-        "#.........2.......E#",
-        "####################"
-    ],
-
-    // LEVEL 2
-    [
-        "####################",
-        "#P....#............#",
-        "#.##..#.##########.#",
-        "#.....#..........#.#",
-        "#.###.#.########.#.#",
-        "#.....#....K.....#.#",
-        "#.##########.###.#.#",
-        "#........H........1#",
-        "#.###########.####.#",
-        "#..................#",
-        "#.######.#########.#",
-        "#....2.#...........#",
-        "#.####.#.########..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 3
-    [
-        "####################",
-        "#P.................#",
-        "#.######.#########.#",
-        "#......#...........#",
-        "#.####.#.#########.#",
-        "#...K..#.....1.....#",
-        "#.#######.########.#",
-        "#......H...........#",
-        "#.###########.####.#",
-        "#.............#....#",
-        "#.######.####.#.##.#",
-        "#..2.....#....#....#",
-        "#.######.#.##H####.#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 4
-    [
-        "####################",
-        "#P........#........#",
-        "#.######..#.######.#",
-        "#......#..#........#",
-        "######.#..########.#",
-        "#......#.....1.....#",
-        "#.####.###########.#",
-        "#..K...............#",
-        "#.##########.######.",
-        "#.......H..........#",
-        "#.##########.#####.#",
-        "#....2.............#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 5
-    [
-        "####################",
-        "#P.................#",
-        "#.####.###########.#",
-        "#......#...........#",
-        "#.###..#.#########.#",
-        "#..K...#....1......#",
-        "#.####.###########.#",
-        "#........H.........#",
-        "#.########.#######.#",
-        "#........#.........#",
-        "#.######.#.#######.#",
-        "#....2...#.........#",
-        "#.######......H...##",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 6
-    [
-        "####################",
-        "#P.................#",
-        "#.################.#",
-        "#.................1#",
-        "#.###############..#",
-        "#.#....H...........#",
-        "#.#.##############.#",
-        "#.#......K.........#",
-        "#.###############..#",
-        "#.........2........#",
-        "#.################.#",
-        "#..........H.......#",
-        "#.################.#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 7
-    [
-        "####################",
-        "#P.....#...........#",
-        "#.####.#.#########.#",
-        "#......#...........#",
-        "#.###############..#",
-        "#.....K..1.........#",
-        "#.###############..#",
-        "#.........H........#",
-        "#.###############..#",
-        "#.....2............#",
-        "#.########.######..#",
-        "#........H.........#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 8
-    [
-        "####################",
-        "#P........#........#",
-        "#.######..#.######.#",
-        "#......#..#........#",
-        "######.#..########.#",
-        "#..K.1.#...........#",
-        "#.####.###########.#",
-        "#.......H..........#",
-        "#.###############..#",
-        "#..........2.......#",
-        "#.######.#########.#",
-        "#......H...........#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 9
-    [
-        "####################",
-        "#P.................#",
-        "#.################.#",
-        "#.......K..........#",
-        "#.###############..#",
-        "#....1.............#",
-        "#.###############..#",
-        "#.......H..........#",
-        "#.###############..#",
-        "#............2.....#",
-        "#.###############..#",
-        "#........H.........#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // ======================================
-    // MAXIMUM SECURITY
-    // ======================================
-
-    // LEVEL 10
-    [
-        "####################",
-        "#P....#............#",
-        "#.##..#.##########.#",
-        "#.....#............#",
-        "#.###.#.##########.#",
-        "#..K..#....1.......#",
-        "#.###.###########..#",
-        "#.......H..........#",
-        "#.###############..#",
-        "#........2.........#",
-        "#.###############..#",
-        "#...........H......#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 11
-    [
-        "####################",
-        "#P.................#",
-        "#.######.#########.#",
-        "#......#...........#",
-        "#.####.#.#########.#",
-        "#..K...#....1......#",
-        "#.####.#.#########.#",
-        "#......H...........#",
-        "#.########.#######.#",
-        "#........#.........#",
-        "#.######.#.#######.#",
-        "#....2.........H...#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 12
-    [
-        "####################",
-        "#P....#............#",
-        "#.##..#.##########.#",
-        "#.....#............#",
-        "#.#####.##########.#",
-        "#..K........1......#",
-        "#.#########.######.#",
-        "#.......H..........#",
-        "#.######.#########.#",
-        "#......#...........#",
-        "#.####.#.#########.#",
-        "#..2.......H.......#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 13
-    [
-        "####################",
-        "#P.................#",
-        "#.################.#",
-        "#...K..............#",
-        "#.###############..#",
-        "#......1...........#",
-        "#.###############..#",
-        "#......H...........#",
-        "#.###############..#",
-        "#..........2.......#",
-        "#.###############..#",
-        "#........H.........#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 14
-    [
-        "####################",
-        "#P.....#...........#",
-        "#.####.#.#########.#",
-        "#......#...........#",
-        "#.###########.####.#",
-        "#..K......1........#",
-        "#.###########.####.#",
-        "#.......H..........#",
-        "#.####.###########.#",
-        "#....#.............#",
-        "#.##.#.###########.#",
-        "#....2.....H.......#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 15
-    [
-        "####################",
-        "#P........#........#",
-        "#.######..#.######.#",
-        "#......#..#........#",
-        "######.#..########.#",
-        "#..K.1.#...........#",
-        "#.####.###########.#",
-        "#......H...........#",
-        "#.###############..#",
-        "#.......2..........#",
-        "#.###############..#",
-        "#...........H......#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 16
-    [
-        "####################",
-        "#P.................#",
-        "#.################.#",
-        "#..K...............#",
-        "#.#########.######.#",
-        "#.......1..........#",
-        "#.###############..#",
-        "#.....H............#",
-        "#.######.#########.#",
-        "#......#....2......#",
-        "#.####.#.#########.#",
-        "#.........H........#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 17
-    [
-        "####################",
-        "#P....#............#",
-        "#.##..#.##########.#",
-        "#.....#............#",
-        "#.###.#.##########.#",
-        "#..K..#.....1......#",
-        "#.###.###########..#",
-        "#......H...........#",
-        "#.###############..#",
-        "#.........2........#",
-        "#.###############..#",
-        "#..........H.......#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 18
-    [
-        "####################",
-        "#P.................#",
-        "#.######.#########.#",
-        "#......#...........#",
-        "#.####.###########.#",
-        "#..K.#.......1.....#",
-        "#.##.###########...#",
-        "#.......H..........#",
-        "#.###############..#",
-        "#.....2............#",
-        "#.###############..#",
-        "#..........H.......#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 19
-    [
-        "####################",
-        "#P........#........#",
-        "#.######..#.######.#",
-        "#......#..#........#",
-        "######.#..########.#",
-        "#..K.1.#...........#",
-        "#.####.###########.#",
-        "#......H...........#",
-        "#.#########.######.#",
-        "#.........#........#",
-        "#.#######.#.######.#",
-        "#....2......H......#",
-        "#.###############..#",
-        "#.................E#",
-        "####################"
-    ],
-
-    // LEVEL 20
-    [
-        "####################",
-        "#P....#............#",
-        "#.##..#.##########.#",
-        "#.....#............#",
-        "#.###.#.##########.#",
-        "#K....#....1.......#",
-        "#.###.###########..#",
-        "#......H...........#",
-        "#.###############..#",
-        "#........2.........#",
-        "#.###############..#",
-        "#.........H........#",
-        "#.###########.####.#",
-        "#.................E#",
-        "####################"
-    ]
-
-];
-
-
-totalLevelsDisplay.textContent =
-    levels.length;
 
 
 // ==========================================================
 // GAME VARIABLES
 // ==========================================================
 
+let gameMode = 0;
+
+let gameState = "menu";
+
+let previousGameState = "menu";
+
 let currentLevel = 0;
 
-let currentMap;
+let currentMap = singlePlayerLevels[0];
 
-let lives = 3;
+let currentMultiplayerMap = -1;
 
-let hasKey = false;
-
-let gameState = "start";
-
-let previousGameState = "start";
-
-
-let player;
+let player1 = null;
+let player2 = null;
 
 let guards = [];
 
-let keyItem = null;
+let key1 = null;
+let key2 = null;
 
-let exitGate = null;
+let exit1 = null;
+let exit2 = null;
 
 let hidingSpots = [];
 
-let playerHidden = false;
+let player1HasKey = false;
+let player2HasKey = false;
 
-let currentHidingSpot = null;
+let winner = null;
 
-
-// ==========================================================
-// SCORE / TIMER
-// ==========================================================
-
-let gameStartTime = 0;
-
-let elapsedTime = 0;
-
-let pausedTime = 0;
-
-let pauseStartedAt = 0;
+let lives = 3;
 
 let score = 0;
 
+let gameStartTime = 0;
+let elapsedTime = 0;
+let pausedTime = 0;
+let pauseStartedAt = 0;
 
 let highScore =
     Number(
@@ -664,7 +237,6 @@ let highScore =
         )
     ) || 0;
 
-
 let highestUnlockedLevel =
     Number(
         localStorage.getItem(
@@ -672,93 +244,54 @@ let highestUnlockedLevel =
         )
     ) || 1;
 
-
 highestUnlockedLevel =
-    Math.min(
-        Math.max(
+    Math.max(
+        1,
+        Math.min(
             highestUnlockedLevel,
-            1
-        ),
-        levels.length
+            singlePlayerLevels.length
+        )
     );
 
-
-highScoreDisplay.textContent =
-    highScore;
+const keys = {};
 
 
 // ==========================================================
-// LEVEL THEME
+// CHARACTER
 // ==========================================================
 
-function getLevelTheme() {
-
-    const level =
-        currentLevel + 1;
-
-
-    if (level <= 9) {
-
-        return {
-
-            name:
-                "OLD PRISON",
-
-            floor1:
-                "#d9ad3b",
-
-            floor2:
-                "#d2a336",
-
-            floorLine:
-                "rgba(100,65,10,.20)",
-
-            wallOuter:
-                "#4b2b16",
-
-            wallMain:
-                "#754421",
-
-            wallLight:
-                "#986039",
-
-            wallDark:
-                "#3b210f",
-
-            wallLine:
-                "#4a2813"
-        };
-    }
-
+function createCharacter(
+    col,
+    row,
+    speed,
+    playerNumber = 0
+) {
 
     return {
+        x: col * TILE + 7,
+        y: row * TILE + 5,
 
-        name:
-            "MAXIMUM SECURITY",
+        spawnX: col * TILE + 7,
+        spawnY: row * TILE + 5,
 
-        floor1:
-            "#777777",
+        width: 26,
+        height: 30,
 
-        floor2:
-            "#686868",
+        speed,
 
-        floorLine:
-            "rgba(20,20,20,.30)",
+        playerNumber,
 
-        wallOuter:
-            "#050505",
+        direction: "down",
 
-        wallMain:
-            "#151515",
+        moving: false,
 
-        wallLight:
-            "#303030",
+        walkFrame: 0,
 
-        wallDark:
-            "#000000",
+        animationTimer: 0,
 
-        wallLine:
-            "#424242"
+        hidden: false,
+
+        hidingSpot: null
     };
 }
 
@@ -772,45 +305,47 @@ function getDifficulty() {
     const level =
         currentLevel + 1;
 
+    if (gameMode === 2) {
+        return {
+            name: "RACE",
+            guardSpeed: 1.25,
+            patrolSpeed: 0.8,
+            detectionRange: 190,
+            pathDelay: 18
+        };
+    }
 
     if (level <= 5) {
-
         return {
             name: "EASY",
             guardSpeed: 1,
-            patrolSpeed: 0.65,
+            patrolSpeed: .65,
             detectionRange: 150,
             pathDelay: 24
         };
     }
 
-
     if (level <= 10) {
-
         return {
             name: "NORMAL",
             guardSpeed: 1.2,
-            patrolSpeed: 0.8,
+            patrolSpeed: .8,
             detectionRange: 180,
             pathDelay: 20
         };
     }
 
-
     if (level <= 15) {
-
         return {
             name: "HARD",
             guardSpeed: 1.4,
-            patrolSpeed: 0.9,
+            patrolSpeed: .9,
             detectionRange: 220,
             pathDelay: 15
         };
     }
 
-
     if (level <= 19) {
-
         return {
             name: "VERY HARD",
             guardSpeed: 1.6,
@@ -819,7 +354,6 @@ function getDifficulty() {
             pathDelay: 11
         };
     }
-
 
     return {
         name: "MAXIMUM",
@@ -832,70 +366,114 @@ function getDifficulty() {
 
 
 // ==========================================================
-// CHARACTER
+// THEME
 // ==========================================================
 
-function createCharacter(
-    col,
-    row,
-    speed
-) {
+function getLevelTheme() {
+
+    const maximum =
+        gameMode === 1 &&
+        currentLevel + 1 >= 10;
+
+    if (!maximum) {
+
+        return {
+            name:
+                gameMode === 2
+                    ? "RACE BLOCK"
+                    : "OLD PRISON",
+
+            floor1: "#d9ad3b",
+            floor2: "#d2a336",
+
+            floorLine:
+                "rgba(100,65,10,.20)",
+
+            wallOuter: "#4b2b16",
+            wallMain: "#754421",
+            wallLight: "#986039",
+            wallDark: "#3b210f",
+            wallLine: "#4a2813"
+        };
+    }
 
     return {
+        name: "MAXIMUM SECURITY",
 
-        x:
-            col * TILE + 7,
+        floor1: "#777",
+        floor2: "#686868",
 
-        y:
-            row * TILE + 5,
+        floorLine:
+            "rgba(20,20,20,.30)",
 
-        width: 26,
-
-        height: 30,
-
-        speed: speed,
-
-        direction: "down",
-
-        moving: false,
-
-        walkFrame: 0,
-
-        animationTimer: 0
+        wallOuter: "#050505",
+        wallMain: "#151515",
+        wallLight: "#303030",
+        wallDark: "#000",
+        wallLine: "#424242"
     };
 }
 
 
 // ==========================================================
-// LOAD LEVEL
+// RANDOM MULTIPLAYER MAP
 // ==========================================================
 
-function loadLevel(index) {
+function chooseRandomMultiplayerMap() {
 
-    currentLevel = index;
+    let index;
 
-    currentMap =
-        levels[currentLevel];
+    do {
+
+        index =
+            Math.floor(
+                Math.random() *
+                twoPlayerLevels.length
+            );
+
+    } while (
+        index === currentMultiplayerMap &&
+        twoPlayerLevels.length > 1
+    );
+
+    currentMultiplayerMap = index;
+
+    return index;
+}
 
 
-    hasKey = false;
+// ==========================================================
+// LOAD MAP
+// ==========================================================
+
+function loadMap(map, levelIndex = 0) {
+
+    currentMap = map;
+
+    if (gameMode === 1) {
+        currentLevel = levelIndex;
+    }
+
+    player1 = null;
+    player2 = null;
 
     guards = [];
 
-    keyItem = null;
+    key1 = null;
+    key2 = null;
 
-    exitGate = null;
+    exit1 = null;
+    exit2 = null;
 
     hidingSpots = [];
 
-    playerHidden = false;
+    player1HasKey = false;
+    player2HasKey = false;
 
-    currentHidingSpot = null;
-
+    winner = null;
 
     const difficulty =
         getDifficulty();
-
 
     for (
         let row = 0;
@@ -912,17 +490,27 @@ function loadLevel(index) {
             const tile =
                 currentMap[row][col];
 
-
             if (tile === "P") {
 
-                player =
+                player1 =
                     createCharacter(
                         col,
                         row,
-                        1.5
+                        1.5,
+                        1
                     );
             }
 
+            if (tile === "Q") {
+
+                player2 =
+                    createCharacter(
+                        col,
+                        row,
+                        1.5,
+                        2
+                    );
+            }
 
             if (
                 tile === "1" ||
@@ -936,92 +524,86 @@ function loadLevel(index) {
                         difficulty.patrolSpeed
                     );
 
-
                 guard.path = [];
-
                 guard.pathTimer = 0;
 
-                guard.state =
-                    "patrol";
+                guard.state = "patrol";
 
-                guard.patrolTarget =
-                    null;
+                guard.patrolTarget = null;
 
                 guard.patrolWait =
                     Math.floor(
                         Math.random() * 50
                     );
 
-                guard.lastSeenPlayer =
-                    null;
+                guard.lastSeenPlayer = null;
 
-
-                guards.push(
-                    guard
-                );
+                guards.push(guard);
             }
-
 
             if (tile === "K") {
 
-                keyItem = {
-
-                    x:
-                        col * TILE + 10,
-
-                    y:
-                        row * TILE + 10,
+                key1 = {
+                    x: col * TILE + 10,
+                    y: row * TILE + 10,
 
                     width: 20,
-
                     height: 20,
 
                     collected: false
                 };
             }
 
+            if (tile === "L") {
+
+                key2 = {
+                    x: col * TILE + 10,
+                    y: row * TILE + 10,
+
+                    width: 20,
+                    height: 20,
+
+                    collected: false
+                };
+            }
 
             if (tile === "E") {
 
-                exitGate = {
-
-                    x:
-                        col * TILE,
-
-                    y:
-                        row * TILE,
+                exit1 = {
+                    x: col * TILE,
+                    y: row * TILE,
 
                     width: TILE,
-
                     height: TILE
                 };
             }
 
+            if (tile === "X") {
+
+                exit2 = {
+                    x: col * TILE,
+                    y: row * TILE,
+
+                    width: TILE,
+                    height: TILE
+                };
+            }
 
             if (tile === "H") {
 
                 hidingSpots.push({
+                    x: col * TILE + 5,
+                    y: row * TILE + 5,
 
-                    x:
-                        col * TILE + 5,
+                    width: TILE - 10,
+                    height: TILE - 10,
 
-                    y:
-                        row * TILE + 5,
-
-                    width:
-                        TILE - 10,
-
-                    height:
-                        TILE - 10,
-
-                    col: col,
-
-                    row: row
+                    col,
+                    row
                 });
             }
         }
     }
-
 
     updatePageTheme();
 
@@ -1030,229 +612,98 @@ function loadLevel(index) {
 
 
 // ==========================================================
-// PAGE THEME
+// START 1 PLAYER
 // ==========================================================
 
-function updatePageTheme() {
-
-    if (
-        currentLevel + 1 >= 10
-    ) {
-
-        document.body.classList.add(
-            "maximum-security-theme"
-        );
-
-    } else {
-
-        document.body.classList.remove(
-            "maximum-security-theme"
-        );
-    }
-}
-
-
-// ==========================================================
-// HUD
-// ==========================================================
-
-function updateHUD() {
-
-    const difficulty =
-        getDifficulty();
-
-    const theme =
-        getLevelTheme();
-
-
-    levelDisplay.textContent =
-        currentLevel + 1;
-
-
-    areaDisplay.textContent =
-        theme.name;
-
-
-    difficultyDisplay.textContent =
-        difficulty.name;
-
-
-    livesDisplay.textContent =
-        lives;
-
-
-    scoreDisplay.textContent =
-        score;
-
-
-    highScoreDisplay.textContent =
-        highScore;
-
-
-    if (hasKey) {
-
-        keyDisplay.textContent =
-            "FOUND";
-
-        keyDisplay.style.color =
-            "#69f0ae";
-
-
-        gateDisplay.textContent =
-            "OPEN";
-
-        gateDisplay.style.color =
-            "#69f0ae";
-
-    } else {
-
-        keyDisplay.textContent =
-            "NOT FOUND";
-
-        keyDisplay.style.color =
-            "#ff8a80";
-
-
-        gateDisplay.textContent =
-            "LOCKED";
-
-        gateDisplay.style.color =
-            "#ff8a80";
-    }
-}
-
-
-// ==========================================================
-// KEYBOARD
-// ==========================================================
-
-const keys = {};
-
-
-window.addEventListener(
-    "keydown",
-    function(event) {
-
-        const key =
-            event.key.toLowerCase();
-
-
-        keys[key] = true;
-
-
-        if (
-            key.startsWith("arrow") ||
-            event.code === "Space"
-        ) {
-
-            event.preventDefault();
-        }
-
-
-        if (
-            gameState === "start" &&
-            (
-                key === "enter" ||
-                event.code === "Space"
-            )
-        ) {
-
-            startNewGame();
-
-            return;
-        }
-
-
-        if (
-            gameState === "playing" &&
-            key === "e"
-        ) {
-
-            toggleHiding();
-
-            return;
-        }
-
-
-        if (
-            gameState === "playing" &&
-            key === "r"
-        ) {
-
-            loadLevel(
-                currentLevel
-            );
-
-            return;
-        }
-
-
-        if (
-            (
-                gameState === "gameover" ||
-                gameState === "victory"
-            )
-            &&
-            key === "enter"
-        ) {
-
-            startNewGame();
-        }
-    }
-);
-
-
-window.addEventListener(
-    "keyup",
-    function(event) {
-
-        keys[
-            event.key.toLowerCase()
-        ] = false;
-    }
-);
-
-
-// ==========================================================
-// NEW GAME
-// ==========================================================
-
-function startNewGame() {
+function startSinglePlayer(
+    level = 0
+) {
+
+    gameMode = 1;
 
     lives = 3;
 
     score = 0;
 
     elapsedTime = 0;
-
     pausedTime = 0;
 
-    pauseStartedAt = 0;
+    gameModeMenu.classList.add(
+        "hidden"
+    );
+
+    multiplayerHud.classList.add(
+        "hidden"
+    );
+
+    multiControls.classList.add(
+        "hidden"
+    );
+
+    singleControls.classList.remove(
+        "hidden"
+    );
+
+    levelSelectButton.classList.remove(
+        "hidden"
+    );
+
+    loadMap(
+        singlePlayerLevels[level],
+        level
+    );
+
+    gameStartTime = Date.now();
+
+    gameState = "playing";
+
+    playMusic();
+}
 
 
-    timerDisplay.textContent =
-        "00:00";
+// ==========================================================
+// START 2 PLAYER
+// ==========================================================
 
+function startTwoPlayer() {
 
-    loadLevel(0);
+    gameMode = 2;
 
+    elapsedTime = 0;
+    pausedTime = 0;
 
-    gameStartTime =
-        Date.now();
+    gameModeMenu.classList.add(
+        "hidden"
+    );
 
+    multiplayerHud.classList.remove(
+        "hidden"
+    );
 
-    gameState =
-        "playing";
+    singleControls.classList.add(
+        "hidden"
+    );
 
+    multiControls.classList.remove(
+        "hidden"
+    );
 
-    if (musicEnabled) {
+    levelSelectButton.classList.add(
+        "hidden"
+    );
 
-        backgroundMusic.currentTime = 0;
+    const index =
+        chooseRandomMultiplayerMap();
 
-        backgroundMusic
-            .play()
-            .catch(() => {});
-    }
+    loadMap(
+        twoPlayerLevels[index]
+    );
+
+    gameStartTime = Date.now();
+
+    gameState = "playing";
+
+    playMusic();
 }
 
 
@@ -1268,17 +719,14 @@ function isWallAtPixel(x, y) {
     const row =
         Math.floor(y / TILE);
 
-
     if (
         row < 0 ||
         row >= ROWS ||
         col < 0 ||
         col >= COLS
     ) {
-
         return true;
     }
-
 
     return (
         currentMap[row][col]
@@ -1295,27 +743,17 @@ function collidesWithWall(
 ) {
 
     return (
-
-        isWallAtPixel(
-            x,
-            y
-        )
-
-        ||
+        isWallAtPixel(x, y) ||
 
         isWallAtPixel(
             x + width - 1,
             y
-        )
-
-        ||
+        ) ||
 
         isWallAtPixel(
             x,
             y + height - 1
-        )
-
-        ||
+        ) ||
 
         isWallAtPixel(
             x + width - 1,
@@ -1328,25 +766,127 @@ function collidesWithWall(
 function rectanglesTouch(a, b) {
 
     return (
-
-        a.x <
-        b.x + b.width
-
-        &&
-
-        a.x + a.width >
-        b.x
-
-        &&
-
-        a.y <
-        b.y + b.height
-
-        &&
-
-        a.y + a.height >
-        b.y
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
     );
+}
+
+
+// ==========================================================
+// MOVEMENT
+// ==========================================================
+
+function movePlayer(
+    character,
+    controls
+) {
+
+    if (
+        !character ||
+        character.hidden
+    ) {
+        return;
+    }
+
+    let dx = 0;
+    let dy = 0;
+
+    character.moving = false;
+
+    if (keys[controls.up]) {
+        dy -= character.speed;
+        character.direction = "up";
+        character.moving = true;
+    }
+
+    if (keys[controls.down]) {
+        dy += character.speed;
+        character.direction = "down";
+        character.moving = true;
+    }
+
+    if (keys[controls.left]) {
+        dx -= character.speed;
+        character.direction = "left";
+        character.moving = true;
+    }
+
+    if (keys[controls.right]) {
+        dx += character.speed;
+        character.direction = "right";
+        character.moving = true;
+    }
+
+    if (
+        dx !== 0 &&
+        dy !== 0
+    ) {
+        dx *= .7071;
+        dy *= .7071;
+    }
+
+    if (
+        !collidesWithWall(
+            character.x + dx,
+            character.y,
+            character.width,
+            character.height
+        )
+    ) {
+        character.x += dx;
+    }
+
+    if (
+        !collidesWithWall(
+            character.x,
+            character.y + dy,
+            character.width,
+            character.height
+        )
+    ) {
+        character.y += dy;
+    }
+
+    updateWalkAnimation(
+        character
+    );
+}
+
+
+function updatePlayers() {
+
+    movePlayer(
+        player1,
+
+        gameMode === 1
+            ? {
+                up: "w",
+                down: "s",
+                left: "a",
+                right: "d"
+            }
+            : {
+                up: "w",
+                down: "s",
+                left: "a",
+                right: "d"
+            }
+    );
+
+    if (gameMode === 2) {
+
+        movePlayer(
+            player2,
+            {
+                up: "arrowup",
+                down: "arrowdown",
+                left: "arrowleft",
+                right: "arrowright"
+            }
+        );
+    }
 }
 
 
@@ -1360,18 +900,28 @@ function updateWalkAnimation(character) {
 
         character.animationTimer++;
 
-
-        if (
-            character.animationTimer >= 10
-        ) {
+        if (character.animationTimer >= 12) {
 
             character.walkFrame =
-                character.walkFrame === 0
-                    ? 1
-                    : 0;
-
+                character.walkFrame === 0 ? 1 : 0;
 
             character.animationTimer = 0;
+
+
+            // Only prisoners make footstep sounds.
+            // Guards will not use these sounds.
+            if (character.playerNumber === 1 ||
+                character.playerNumber === 2) {
+
+                if (character.walkFrame === 0) {
+
+                    playFootstep(footstep1);
+
+                } else {
+
+                    playFootstep(footstep2);
+                }
+            }
         }
 
     } else {
@@ -1381,215 +931,42 @@ function updateWalkAnimation(character) {
         character.animationTimer = 0;
     }
 }
+function playFootstep(sound) {
 
-
-// ==========================================================
-// FOOTSTEPS
-// ==========================================================
-
-function updateFootsteps() {
-
-    if (
-        !player.moving ||
-        playerHidden ||
-        !sfxEnabled
-    ) {
-
+    if (!sfxEnabled) {
         return;
     }
 
-
-    const now =
-        Date.now();
-
-
-    if (
-        now - footstepTimer <
-        FOOTSTEP_DELAY
-    ) {
-
-        return;
-    }
-
-
-    const sound =
-        footstepNumber === 0
-            ? footstep1
-            : footstep2;
-
+    sound.pause();
 
     sound.currentTime = 0;
 
-
-    sound
-        .play()
-        .catch(() => {});
-
-
-    footstepNumber =
-        footstepNumber === 0
-            ? 1
-            : 0;
-
-
-    footstepTimer = now;
+    sound.play().catch(error => {
+        console.log(
+            "Footstep sound could not play:",
+            error
+        );
+    });
 }
-
-
-// ==========================================================
-// PLAYER MOVEMENT
-// ==========================================================
-
-function updatePlayer() {
-
-    if (playerHidden) {
-
-        player.moving = false;
-
-        return;
-    }
-
-
-    let dx = 0;
-
-    let dy = 0;
-
-
-    player.moving = false;
-
-
-    if (
-        keys["w"] ||
-        keys["arrowup"]
-    ) {
-
-        dy -= player.speed;
-
-        player.direction =
-            "up";
-
-        player.moving =
-            true;
-    }
-
-
-    if (
-        keys["s"] ||
-        keys["arrowdown"]
-    ) {
-
-        dy += player.speed;
-
-        player.direction =
-            "down";
-
-        player.moving =
-            true;
-    }
-
-
-    if (
-        keys["a"] ||
-        keys["arrowleft"]
-    ) {
-
-        dx -= player.speed;
-
-        player.direction =
-            "left";
-
-        player.moving =
-            true;
-    }
-
-
-    if (
-        keys["d"] ||
-        keys["arrowright"]
-    ) {
-
-        dx += player.speed;
-
-        player.direction =
-            "right";
-
-        player.moving =
-            true;
-    }
-
-
-    if (
-        dx !== 0 &&
-        dy !== 0
-    ) {
-
-        dx *= 0.7071;
-
-        dy *= 0.7071;
-    }
-
-
-    const newX =
-        player.x + dx;
-
-
-    if (
-        !collidesWithWall(
-            newX,
-            player.y,
-            player.width,
-            player.height
-        )
-    ) {
-
-        player.x =
-            newX;
-    }
-
-
-    const newY =
-        player.y + dy;
-
-
-    if (
-        !collidesWithWall(
-            player.x,
-            newY,
-            player.width,
-            player.height
-        )
-    ) {
-
-        player.y =
-            newY;
-    }
-
-
-    updateWalkAnimation(
-        player
-    );
-
-
-    updateFootsteps();
-}
-
 
 // ==========================================================
 // HIDING
 // ==========================================================
 
-function toggleHiding() {
+function toggleHiding(
+    character
+) {
 
-    if (playerHidden) {
+    if (!character) return;
 
-        playerHidden = false;
+    if (character.hidden) {
 
-        currentHidingSpot =
-            null;
+        character.hidden = false;
+
+        character.hidingSpot = null;
 
         return;
     }
-
 
     for (
         const spot
@@ -1598,34 +975,24 @@ function toggleHiding() {
 
         if (
             rectanglesTouch(
-                player,
+                character,
                 spot
             )
         ) {
 
-            playerHidden =
-                true;
+            character.hidden = true;
 
+            character.hidingSpot = spot;
 
-            currentHidingSpot =
-                spot;
-
-
-            player.x =
+            character.x =
                 spot.x +
                 spot.width / 2 -
-                player.width / 2;
+                character.width / 2;
 
-
-            player.y =
+            character.y =
                 spot.y +
                 spot.height / 2 -
-                player.height / 2;
-
-
-            player.moving =
-                false;
-
+                character.height / 2;
 
             return;
         }
@@ -1634,13 +1001,14 @@ function toggleHiding() {
 
 
 // ==========================================================
-// TILE POSITION
+// TILE
 // ==========================================================
 
-function getCharacterTile(character) {
+function getCharacterTile(
+    character
+) {
 
     return {
-
         col:
             Math.floor(
                 (
@@ -1661,76 +1029,54 @@ function getCharacterTile(character) {
 
 
 // ==========================================================
-// BFS PATHFINDING
+// PATHFINDING
 // ==========================================================
 
-function findPath(start, target) {
+function findPath(
+    start,
+    target
+) {
 
-    const queue = [
-
-        {
-            col: start.col,
-            row: start.row,
-            path: []
-        }
-    ];
-
+    const queue = [{
+        col: start.col,
+        row: start.row,
+        path: []
+    }];
 
     const visited =
-        new Set();
-
-
-    visited.add(
-        start.col +
-        "," +
-        start.row
-    );
-
+        new Set([
+            `${start.col},${start.row}`
+        ]);
 
     const directions = [
-
-        { col: 1, row: 0 },
-
-        { col: -1, row: 0 },
-
-        { col: 0, row: 1 },
-
-        { col: 0, row: -1 }
-
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1]
     ];
 
-
-    while (
-        queue.length > 0
-    ) {
+    while (queue.length) {
 
         const current =
             queue.shift();
-
 
         if (
             current.col === target.col &&
             current.row === target.row
         ) {
-
             return current.path;
         }
 
-
         for (
-            const direction
+            const [dc, dr]
             of directions
         ) {
 
             const col =
-                current.col +
-                direction.col;
-
+                current.col + dc;
 
             const row =
-                current.row +
-                direction.row;
-
+                current.row + dr;
 
             if (
                 row < 0 ||
@@ -1738,162 +1084,38 @@ function findPath(start, target) {
                 col < 0 ||
                 col >= COLS
             ) {
-
                 continue;
             }
-
 
             if (
                 currentMap[row][col]
                 === "#"
             ) {
-
                 continue;
             }
-
 
             const id =
-                col + "," + row;
+                `${col},${row}`;
 
-
-            if (
-                visited.has(id)
-            ) {
-
+            if (visited.has(id)) {
                 continue;
             }
-
 
             visited.add(id);
 
-
             queue.push({
-
-                col: col,
-
-                row: row,
+                col,
+                row,
 
                 path: [
-
                     ...current.path,
-
-                    {
-                        col: col,
-                        row: row
-                    }
+                    { col, row }
                 ]
             });
         }
     }
 
-
     return [];
-}
-
-
-// ==========================================================
-// PATROL
-// ==========================================================
-
-function choosePatrolTarget(guard) {
-
-    const guardTile =
-        getCharacterTile(
-            guard
-        );
-
-
-    const possible =
-        [];
-
-
-    const radius = 6;
-
-
-    for (
-        let row =
-            Math.max(
-                1,
-                guardTile.row -
-                radius
-            );
-
-        row <=
-            Math.min(
-                ROWS - 2,
-                guardTile.row +
-                radius
-            );
-
-        row++
-    ) {
-
-        for (
-            let col =
-                Math.max(
-                    1,
-                    guardTile.col -
-                    radius
-                );
-
-            col <=
-                Math.min(
-                    COLS - 2,
-                    guardTile.col +
-                    radius
-                );
-
-            col++
-        ) {
-
-            if (
-                currentMap[row][col]
-                === "#"
-            ) {
-
-                continue;
-            }
-
-
-            const distance =
-                Math.abs(
-                    col -
-                    guardTile.col
-                )
-                +
-                Math.abs(
-                    row -
-                    guardTile.row
-                );
-
-
-            if (
-                distance >= 3
-            ) {
-
-                possible.push({
-                    col: col,
-                    row: row
-                });
-            }
-        }
-    }
-
-
-    if (
-        possible.length === 0
-    ) {
-
-        return null;
-    }
-
-
-    return possible[
-        Math.floor(
-            Math.random() *
-            possible.length
-        )
-    ];
 }
 
 
@@ -1901,67 +1123,54 @@ function choosePatrolTarget(guard) {
 // GUARD VISION
 // ==========================================================
 
-function guardCanSeePlayer(guard) {
+function guardCanSee(
+    guard,
+    character
+) {
 
-    if (playerHidden) {
-
+    if (
+        !character ||
+        character.hidden
+    ) {
         return false;
     }
 
-
     const difficulty =
         getDifficulty();
-
 
     const gx =
         guard.x +
         guard.width / 2;
 
-
     const gy =
         guard.y +
         guard.height / 2;
 
-
     const px =
-        player.x +
-        player.width / 2;
-
+        character.x +
+        character.width / 2;
 
     const py =
-        player.y +
-        player.height / 2;
+        character.y +
+        character.height / 2;
 
-
-    const dx =
-        px - gx;
-
-
-    const dy =
-        py - gy;
-
+    const dx = px - gx;
+    const dy = py - gy;
 
     const distance =
-        Math.sqrt(
-            dx * dx +
-            dy * dy
-        );
-
+        Math.hypot(dx, dy);
 
     if (
         distance >
         difficulty.detectionRange
     ) {
-
         return false;
     }
-
 
     const steps =
         Math.ceil(
             distance / 8
         );
-
 
     for (
         let i = 1;
@@ -1972,86 +1181,179 @@ function guardCanSeePlayer(guard) {
         const t =
             i / steps;
 
-
         if (
             isWallAtPixel(
                 gx + dx * t,
                 gy + dy * t
             )
         ) {
-
             return false;
         }
     }
-
 
     return true;
 }
 
 
-// ==========================================================
-// MOVE GUARD ALONG PATH
-// ==========================================================
+function getGuardTarget(
+    guard
+) {
 
-function moveGuardAlongPath(guard) {
+    const targets = [];
 
     if (
-        !guard.path ||
-        guard.path.length === 0
+        guardCanSee(
+            guard,
+            player1
+        )
     ) {
+        targets.push(player1);
+    }
+
+    if (
+        gameMode === 2 &&
+        guardCanSee(
+            guard,
+            player2
+        )
+    ) {
+        targets.push(player2);
+    }
+
+    if (!targets.length) {
+        return null;
+    }
+
+    targets.sort(
+        (a, b) =>
+            Math.hypot(
+                a.x - guard.x,
+                a.y - guard.y
+            )
+            -
+            Math.hypot(
+                b.x - guard.x,
+                b.y - guard.y
+            )
+    );
+
+    return targets[0];
+}
+
+
+// ==========================================================
+// PATROL TARGET
+// ==========================================================
+
+function choosePatrolTarget(
+    guard
+) {
+
+    const tile =
+        getCharacterTile(guard);
+
+    const options = [];
+
+    for (
+        let row = 1;
+        row < ROWS - 1;
+        row++
+    ) {
+
+        for (
+            let col = 1;
+            col < COLS - 1;
+            col++
+        ) {
+
+            if (
+                currentMap[row][col]
+                === "#"
+            ) {
+                continue;
+            }
+
+            const distance =
+                Math.abs(
+                    col - tile.col
+                )
+                +
+                Math.abs(
+                    row - tile.row
+                );
+
+            if (
+                distance >= 3 &&
+                distance <= 7
+            ) {
+
+                options.push({
+                    col,
+                    row
+                });
+            }
+        }
+    }
+
+    if (!options.length) {
+        return null;
+    }
+
+    return options[
+        Math.floor(
+            Math.random() *
+            options.length
+        )
+    ];
+}
+
+
+// ==========================================================
+// GUARD MOVEMENT
+// ==========================================================
+
+function moveGuardAlongPath(
+    guard
+) {
+
+    if (!guard.path.length) {
 
         guard.moving = false;
 
         return;
     }
 
-
     const next =
         guard.path[0];
 
-
-    const targetX =
+    const tx =
         next.col * TILE +
         TILE / 2 -
         guard.width / 2;
 
-
-    const targetY =
+    const ty =
         next.row * TILE +
         TILE / 2 -
         guard.height / 2;
 
-
     const dx =
-        targetX -
-        guard.x;
-
+        tx - guard.x;
 
     const dy =
-        targetY -
-        guard.y;
-
+        ty - guard.y;
 
     const distance =
-        Math.sqrt(
-            dx * dx +
-            dy * dy
-        );
-
+        Math.hypot(dx, dy);
 
     if (distance < 1) {
 
-        guard.x =
-            targetX;
-
-        guard.y =
-            targetY;
+        guard.x = tx;
+        guard.y = ty;
 
         guard.path.shift();
 
         return;
     }
-
 
     if (
         Math.abs(dx) >
@@ -2071,9 +1373,7 @@ function moveGuardAlongPath(guard) {
                 : "up";
     }
 
-
     guard.moving = true;
-
 
     const movement =
         Math.min(
@@ -2081,37 +1381,18 @@ function moveGuardAlongPath(guard) {
             distance
         );
 
-
     guard.x +=
-        dx /
-        distance *
+        dx / distance *
         movement;
-
 
     guard.y +=
-        dy /
-        distance *
+        dy / distance *
         movement;
-
-
-    if (
-        distance <=
-        guard.speed + 0.5
-    ) {
-
-        guard.x =
-            targetX;
-
-        guard.y =
-            targetY;
-
-        guard.path.shift();
-    }
 }
 
 
 // ==========================================================
-// GUARD AI
+// GUARDS
 // ==========================================================
 
 function updateGuards() {
@@ -2119,266 +1400,178 @@ function updateGuards() {
     const difficulty =
         getDifficulty();
 
+    for (const guard of guards) {
 
-    for (
-        const guard
-        of guards
-    ) {
+        const target =
+            getGuardTarget(guard);
 
-        guard.moving = false;
-
-
-        const canSeePlayer =
-            guardCanSeePlayer(
-                guard
-            );
-
-
-        if (canSeePlayer) {
+        if (target) {
 
             if (
-                guard.state !==
-                "chase"
+                guard.state !== "chase"
             ) {
-
-                playSFX(
-                    alertSound
-                );
+                playSFX(alertSound);
             }
 
-
-            guard.state =
-                "chase";
-
+            guard.state = "chase";
 
             guard.lastSeenPlayer =
-                getCharacterTile(
-                    player
-                );
-        }
+                getCharacterTile(target);
 
+            guard.speed =
+                difficulty.guardSpeed;
 
-        // CHASE
+            guard.pathTimer--;
 
-        if (
+            if (
+                guard.pathTimer <= 0
+            ) {
+
+                guard.path =
+                    findPath(
+                        getCharacterTile(
+                            guard
+                        ),
+                        getCharacterTile(
+                            target
+                        )
+                    );
+
+                guard.pathTimer =
+                    difficulty.pathDelay;
+            }
+
+        } else if (
             guard.state === "chase"
         ) {
 
-            guard.speed =
-                difficulty.guardSpeed;
+            guard.state = "search";
 
+            if (guard.lastSeenPlayer) {
 
-            if (canSeePlayer) {
-
-                guard.pathTimer--;
-
-
-                if (
-                    guard.pathTimer <= 0
-                ) {
-
-                    guard.path =
-                        findPath(
-
-                            getCharacterTile(
-                                guard
-                            ),
-
-                            getCharacterTile(
-                                player
-                            )
-                        );
-
-
-                    guard.pathTimer =
-                        difficulty.pathDelay;
-                }
-
-            } else {
-
-                guard.state =
-                    "search";
-
-
-                if (
-                    guard.lastSeenPlayer
-                ) {
-
-                    guard.path =
-                        findPath(
-
-                            getCharacterTile(
-                                guard
-                            ),
-
-                            guard.lastSeenPlayer
-                        );
-                }
+                guard.path =
+                    findPath(
+                        getCharacterTile(
+                            guard
+                        ),
+                        guard.lastSeenPlayer
+                    );
             }
 
-
-            moveGuardAlongPath(
-                guard
-            );
-        }
-
-
-        // SEARCH
-
-        else if (
-            guard.state === "search"
+        } else if (
+            guard.state === "search" &&
+            guard.path.length === 0
         ) {
 
-            guard.speed =
-                difficulty.guardSpeed;
+            guard.state = "patrol";
 
-
-            if (canSeePlayer) {
-
-                guard.state =
-                    "chase";
-
-            } else {
-
-                moveGuardAlongPath(
-                    guard
-                );
-
-
-                if (
-                    guard.path.length === 0
-                ) {
-
-                    guard.state =
-                        "patrol";
-
-
-                    guard.lastSeenPlayer =
-                        null;
-
-
-                    guard.patrolTarget =
-                        null;
-
-
-                    guard.patrolWait =
-                        45;
-                }
-            }
+            guard.patrolTarget = null;
         }
 
-
-        // PATROL
-
-        else {
+        if (
+            guard.state === "patrol"
+        ) {
 
             guard.speed =
                 difficulty.patrolSpeed;
 
+            if (!guard.patrolTarget) {
 
-            if (
-                guard.patrolWait > 0
-            ) {
-
-                guard.patrolWait--;
-
-            } else {
+                guard.patrolTarget =
+                    choosePatrolTarget(
+                        guard
+                    );
 
                 if (
-                    !guard.patrolTarget
+                    guard.patrolTarget
                 ) {
 
-                    guard.patrolTarget =
-                        choosePatrolTarget(
-                            guard
-                        );
-
-
-                    if (
-                        guard.patrolTarget
-                    ) {
-
-                        guard.path =
-                            findPath(
-
-                                getCharacterTile(
-                                    guard
-                                ),
-
-                                guard.patrolTarget
-                            );
-                    }
-                }
-
-
-                moveGuardAlongPath(
-                    guard
-                );
-
-
-                if (
-                    guard.patrolTarget &&
-                    guard.path.length === 0
-                ) {
-
-                    guard.patrolTarget =
-                        null;
-
-
-                    guard.patrolWait =
-                        25 +
-                        Math.floor(
-                            Math.random() *
-                            50
+                    guard.path =
+                        findPath(
+                            getCharacterTile(
+                                guard
+                            ),
+                            guard.patrolTarget
                         );
                 }
             }
+
+            if (
+                guard.path.length === 0
+            ) {
+                guard.patrolTarget = null;
+            }
         }
 
+        moveGuardAlongPath(guard);
 
-        updateWalkAnimation(
-            guard
+        updateWalkAnimation(guard);
+
+        checkGuardCatch(
+            guard,
+            player1
         );
 
+        if (gameMode === 2) {
 
-        if (
-            !playerHidden &&
-            rectanglesTouch(
-                player,
-                guard
-            )
-        ) {
-
-            playerCaught();
-
-            return;
+            checkGuardCatch(
+                guard,
+                player2
+            );
         }
     }
 }
 
 
 // ==========================================================
-// PLAYER CAUGHT
+// CAUGHT
 // ==========================================================
 
-function playerCaught() {
+function checkGuardCatch(
+    guard,
+    character
+) {
 
-    playSFX(
-        caughtSound
-    );
+    if (
+        !character ||
+        character.hidden
+    ) {
+        return;
+    }
 
+    if (
+        !rectanglesTouch(
+            guard,
+            character
+        )
+    ) {
+        return;
+    }
+
+    playSFX(caughtSound);
+
+    if (gameMode === 2) {
+
+        // Only reset the caught player.
+
+        character.x =
+            character.spawnX;
+
+        character.y =
+            character.spawnY;
+
+        character.hidden = false;
+
+        return;
+    }
 
     lives--;
 
-
-    if (
-        lives <= 0
-    ) {
+    if (lives <= 0) {
 
         lives = 0;
 
-        gameState =
-            "gameover";
+        gameState = "gameover";
 
         backgroundMusic.pause();
 
@@ -2387,138 +1580,134 @@ function playerCaught() {
         return;
     }
 
-
-    loadLevel(
+    loadMap(
+        singlePlayerLevels[
+            currentLevel
+        ],
         currentLevel
     );
 }
 
 
 // ==========================================================
-// KEY
+// KEYS
 // ==========================================================
 
-function updateKey() {
+function updateKeys() {
 
     if (
-        !keyItem ||
-        keyItem.collected
+        key1 &&
+        !key1.collected &&
+        player1 &&
+        rectanglesTouch(
+            player1,
+            key1
+        )
     ) {
+
+        key1.collected = true;
+
+        player1HasKey = true;
+
+        playSFX(keySound);
+    }
+
+    if (
+        gameMode === 2 &&
+        key2 &&
+        !key2.collected &&
+        player2 &&
+        rectanglesTouch(
+            player2,
+            key2
+        )
+    ) {
+
+        key2.collected = true;
+
+        player2HasKey = true;
+
+        playSFX(keySound);
+    }
+
+    updateHUD();
+}
+
+
+// ==========================================================
+// EXITS
+// ==========================================================
+
+function updateExits() {
+
+    if (
+        player1 &&
+        exit1 &&
+        player1HasKey &&
+        rectanglesTouch(
+            player1,
+            exit1
+        )
+    ) {
+
+        if (gameMode === 1) {
+
+            nextSinglePlayerLevel();
+
+        } else {
+
+            finishRace(1);
+        }
 
         return;
     }
 
-
     if (
+        gameMode === 2 &&
+        player2 &&
+        exit2 &&
+        player2HasKey &&
         rectanglesTouch(
-            player,
-            keyItem
+            player2,
+            exit2
         )
     ) {
 
-        keyItem.collected =
-            true;
-
-
-        hasKey =
-            true;
-
-
-        playSFX(
-            keySound
-        );
-
-
-        updateHUD();
+        finishRace(2);
     }
 }
 
 
 // ==========================================================
-// EXIT
+// NEXT SINGLE PLAYER LEVEL
 // ==========================================================
 
-function updateExit() {
+function nextSinglePlayerLevel() {
 
-    if (
-        !hasKey ||
-        !exitGate
-    ) {
-
-        return;
-    }
-
-
-    if (
-        rectanglesTouch(
-            player,
-            exitGate
-        )
-    ) {
-
-        nextLevel();
-    }
-}
-
-
-// ==========================================================
-// SCORE
-// ==========================================================
-
-function calculateLevelScore() {
-
-    const level =
-        currentLevel + 1;
-
-
-    return (
-        1000 +
-        level * 100 +
-        lives * 250
-    );
-}
-
-
-// ==========================================================
-// NEXT LEVEL / UNLOCKING
-// ==========================================================
-
-function nextLevel() {
-
-    playSFX(
-        escapeSound
-    );
-
+    playSFX(escapeSound);
 
     score +=
-        calculateLevelScore();
+        1000 +
+        (currentLevel + 1) * 100 +
+        lives * 250;
 
-
-    const completedLevel =
+    const completed =
         currentLevel + 1;
 
-
     localStorage.setItem(
-        "cellBlockEscapeCompleted_" +
-        completedLevel,
+        `cellBlockEscapeCompleted_${completed}`,
         "1"
     );
 
-
-    const nextNumber =
-        completedLevel + 1;
-
-
     if (
-        nextNumber <=
-        levels.length &&
-        nextNumber >
-        highestUnlockedLevel
+        completed + 1 >
+        highestUnlockedLevel &&
+        completed <
+        singlePlayerLevels.length
     ) {
 
         highestUnlockedLevel =
-            nextNumber;
-
+            completed + 1;
 
         localStorage.setItem(
             "cellBlockEscapeUnlockedLevel",
@@ -2526,67 +1715,81 @@ function nextLevel() {
         );
     }
 
-
     if (
         currentLevel <
-        levels.length - 1
+        singlePlayerLevels.length - 1
     ) {
 
-        loadLevel(
+        loadMap(
+            singlePlayerLevels[
+                currentLevel + 1
+            ],
             currentLevel + 1
         );
 
     } else {
 
-        finishGame();
+        finishSinglePlayer();
     }
 }
 
 
 // ==========================================================
-// FINISH GAME
+// FINISH SINGLE PLAYER
 // ==========================================================
 
-function finishGame() {
-
-    const totalSeconds =
-        Math.floor(
-            elapsedTime / 1000
-        );
-
+function finishSinglePlayer() {
 
     score +=
         Math.max(
             0,
             10000 -
-            totalSeconds * 10
+            Math.floor(
+                elapsedTime / 1000
+            ) * 10
         );
 
+    saveHighScore();
 
-    if (
-        score >
-        highScore
-    ) {
+    gameState = "victory";
 
-        highScore =
-            score;
+    backgroundMusic.pause();
+}
 
+
+// ==========================================================
+// FINISH RACE
+// ==========================================================
+
+function finishRace(
+    playerNumber
+) {
+
+    winner = playerNumber;
+
+    gameState = "roundover";
+
+    playSFX(escapeSound);
+
+    backgroundMusic.pause();
+}
+
+
+// ==========================================================
+// HIGH SCORE
+// ==========================================================
+
+function saveHighScore() {
+
+    if (score > highScore) {
+
+        highScore = score;
 
         localStorage.setItem(
             "cellBlockEscapeHighScore",
             highScore
         );
     }
-
-
-    updateHUD();
-
-
-    gameState =
-        "victory";
-
-
-    backgroundMusic.pause();
 }
 
 
@@ -2601,39 +1804,91 @@ function updateTimer() {
         gameStartTime -
         pausedTime;
 
-
-    const totalSeconds =
+    const seconds =
         Math.floor(
             elapsedTime / 1000
         );
 
-
     const minutes =
         Math.floor(
-            totalSeconds / 60
+            seconds / 60
         );
 
-
-    const seconds =
-        totalSeconds % 60;
-
-
     timerDisplay.textContent =
-        String(
-            minutes
-        ).padStart(
-            2,
-            "0"
-        )
+        String(minutes)
+            .padStart(2, "0")
         +
         ":"
         +
-        String(
-            seconds
-        ).padStart(
-            2,
-            "0"
-        );
+        String(seconds % 60)
+            .padStart(2, "0");
+}
+
+
+// ==========================================================
+// HUD
+// ==========================================================
+
+function updateHUD() {
+
+    const difficulty =
+        getDifficulty();
+
+    const theme =
+        getLevelTheme();
+
+    modeDisplay.textContent =
+        gameMode === 2
+            ? "2 PLAYER"
+            : "1 PLAYER";
+
+    levelDisplay.textContent =
+        currentLevel + 1;
+
+    totalLevelsDisplay.textContent =
+        singlePlayerLevels.length;
+
+    areaDisplay.textContent =
+        theme.name;
+
+    difficultyDisplay.textContent =
+        difficulty.name;
+
+    livesDisplay.textContent =
+        lives;
+
+    scoreDisplay.textContent =
+        score;
+
+    highScoreDisplay.textContent =
+        highScore;
+
+    p1KeyDisplay.textContent =
+        player1HasKey
+            ? "FOUND"
+            : "NOT FOUND";
+
+    p2KeyDisplay.textContent =
+        player2HasKey
+            ? "FOUND"
+            : "NOT FOUND";
+}
+
+
+// ==========================================================
+// PAGE THEME
+// ==========================================================
+
+function updatePageTheme() {
+
+    const maximum =
+        gameMode === 1 &&
+        currentLevel + 1 >= 10;
+
+    document.body.classList.toggle(
+        "maximum-security-theme",
+        maximum
+    );
 }
 
 
@@ -2643,52 +1898,54 @@ function updateTimer() {
 
 function playSFX(sound) {
 
-    if (!sfxEnabled) {
-
-        return;
-    }
-
+    if (!sfxEnabled) return;
 
     sound.currentTime = 0;
 
+    sound.play().catch(() => {});
+}
 
-    sound
+
+function playMusic() {
+
+    if (!musicEnabled) return;
+
+    backgroundMusic.currentTime = 0;
+
+    backgroundMusic
         .play()
         .catch(() => {});
 }
 
 
-function updateSFXVolume() {
+function updateVolumes() {
+
+    backgroundMusic.volume =
+        Number(
+            musicVolume.value
+        ) / 100;
 
     const volume =
         Number(
             sfxVolume.value
         ) / 100;
 
-
-    keySound.volume =
-        volume;
-
-    caughtSound.volume =
-        volume;
-
-    escapeSound.volume =
-        volume;
-
-    alertSound.volume =
-        volume;
-
-
-    footstep1.volume =
-        volume * 0.45;
-
-    footstep2.volume =
-        volume * 0.45;
+    [
+        keySound,
+        caughtSound,
+        escapeSound,
+        alertSound,
+        footstep1,
+        footstep2
+    ].forEach(
+        sound =>
+            sound.volume = volume
+    );
 }
 
 
 // ==========================================================
-// SETTINGS STORAGE
+// SETTINGS
 // ==========================================================
 
 function saveSettings() {
@@ -2697,18 +1954,15 @@ function saveSettings() {
         "cellBlockEscapeSettings",
 
         JSON.stringify({
-
             musicVolume:
                 musicVolume.value,
 
             sfxVolume:
                 sfxVolume.value,
 
-            musicEnabled:
-                musicEnabled,
+            musicEnabled,
 
-            sfxEnabled:
-                sfxEnabled
+            sfxEnabled
         })
     );
 }
@@ -2721,7 +1975,6 @@ function loadSettings() {
             "cellBlockEscapeSettings"
         );
 
-
     if (saved) {
 
         try {
@@ -2729,89 +1982,68 @@ function loadSettings() {
             const settings =
                 JSON.parse(saved);
 
-
             musicVolume.value =
-                settings.musicVolume ??
-                35;
-
+                settings.musicVolume ?? 35;
 
             sfxVolume.value =
-                settings.sfxVolume ??
-                70;
-
+                settings.sfxVolume ?? 70;
 
             musicEnabled =
-                settings.musicEnabled ??
-                true;
-
+                settings.musicEnabled ?? true;
 
             sfxEnabled =
-                settings.sfxEnabled ??
-                true;
+                settings.sfxEnabled ?? true;
 
-        } catch (error) {
-
-            console.log(
-                "Settings could not be loaded."
-            );
-        }
+        } catch {}
     }
-
-
-    backgroundMusic.volume =
-        Number(
-            musicVolume.value
-        ) / 100;
-
-
-    updateSFXVolume();
-
 
     musicToggle.textContent =
         musicEnabled
             ? "ON"
             : "OFF";
 
-
     sfxToggle.textContent =
         sfxEnabled
             ? "ON"
             : "OFF";
+
+    updateVolumes();
 }
 
 
 // ==========================================================
-// PAUSE HELPERS
+// PAUSE
 // ==========================================================
 
-function pauseGameForMenu() {
+function openPauseMenu(
+    menu
+) {
 
     previousGameState =
         gameState;
 
-
     if (
-        gameState ===
-        "playing"
+        gameState === "playing"
     ) {
 
         pauseStartedAt =
             Date.now();
     }
 
+    gameState = "paused";
 
-    gameState =
-        "paused";
+    menu.classList.remove(
+        "hidden"
+    );
 }
 
 
-function resumeGameFromMenu() {
+function resumeFromPause() {
 
     if (
         previousGameState ===
-        "playing"
-        &&
-        pauseStartedAt > 0
+        "playing" &&
+        pauseStartedAt
     ) {
 
         pausedTime +=
@@ -2819,9 +2051,7 @@ function resumeGameFromMenu() {
             pauseStartedAt;
     }
 
-
     pauseStartedAt = 0;
-
 
     gameState =
         previousGameState;
@@ -2834,40 +2064,32 @@ function resumeGameFromMenu() {
 
 settingsButton.addEventListener(
     "click",
-    function() {
-
-        pauseGameForMenu();
-
-
-        settingsMenu.classList.remove(
-            "hidden"
-        );
-    }
+    () => openPauseMenu(
+        settingsMenu
+    )
 );
 
 
 resumeButton.addEventListener(
     "click",
-    function() {
+    () => {
 
         settingsMenu.classList.add(
             "hidden"
         );
 
-
-        resumeGameFromMenu();
+        resumeFromPause();
     }
 );
 
 
 helpButton.addEventListener(
     "click",
-    function() {
+    () => {
 
         settingsMenu.classList.add(
             "hidden"
         );
-
 
         helpMenu.classList.remove(
             "hidden"
@@ -2878,12 +2100,71 @@ helpButton.addEventListener(
 
 backToSettingsButton.addEventListener(
     "click",
-    function() {
+    () => {
 
         helpMenu.classList.add(
             "hidden"
         );
 
+        settingsMenu.classList.remove(
+            "hidden"
+        );
+    }
+);
+
+
+aboutButton.addEventListener(
+    "click",
+    () => {
+
+        settingsMenu.classList.add(
+            "hidden"
+        );
+
+        aboutMenu.classList.remove(
+            "hidden"
+        );
+    }
+);
+
+
+backFromAboutButton.addEventListener(
+    "click",
+    () => {
+
+        aboutMenu.classList.add(
+            "hidden"
+        );
+
+        settingsMenu.classList.remove(
+            "hidden"
+        );
+    }
+);
+
+
+creditsButton.addEventListener(
+    "click",
+    () => {
+
+        settingsMenu.classList.add(
+            "hidden"
+        );
+
+        creditsMenu.classList.remove(
+            "hidden"
+        );
+    }
+);
+
+
+backFromCreditsButton.addEventListener(
+    "click",
+    () => {
+
+        creditsMenu.classList.add(
+            "hidden"
+        );
 
         settingsMenu.classList.remove(
             "hidden"
@@ -2894,14 +2175,9 @@ backToSettingsButton.addEventListener(
 
 musicVolume.addEventListener(
     "input",
-    function() {
+    () => {
 
-        backgroundMusic.volume =
-            Number(
-                this.value
-            ) / 100;
-
-
+        updateVolumes();
         saveSettings();
     }
 );
@@ -2909,10 +2185,9 @@ musicVolume.addEventListener(
 
 sfxVolume.addEventListener(
     "input",
-    function() {
+    () => {
 
-        updateSFXVolume();
-
+        updateVolumes();
         saveSettings();
     }
 );
@@ -2920,32 +2195,20 @@ sfxVolume.addEventListener(
 
 musicToggle.addEventListener(
     "click",
-    function() {
+    () => {
 
         musicEnabled =
             !musicEnabled;
-
 
         musicToggle.textContent =
             musicEnabled
                 ? "ON"
                 : "OFF";
 
-
         if (!musicEnabled) {
 
             backgroundMusic.pause();
-
-        } else if (
-            previousGameState ===
-            "playing"
-        ) {
-
-            backgroundMusic
-                .play()
-                .catch(() => {});
         }
-
 
         saveSettings();
     }
@@ -2954,19 +2217,134 @@ musicToggle.addEventListener(
 
 sfxToggle.addEventListener(
     "click",
-    function() {
+    () => {
 
         sfxEnabled =
             !sfxEnabled;
-
 
         sfxToggle.textContent =
             sfxEnabled
                 ? "ON"
                 : "OFF";
 
-
         saveSettings();
+    }
+);
+
+
+// ==========================================================
+// GAME MODE EVENTS
+// ==========================================================
+
+onePlayerButton.addEventListener(
+    "click",
+    () => startSinglePlayer(0)
+);
+
+
+twoPlayerButton.addEventListener(
+    "click",
+    startTwoPlayer
+);
+
+
+mainMenuButton.addEventListener(
+    "click",
+    () => {
+
+        backgroundMusic.pause();
+
+        gameState = "menu";
+
+        gameModeMenu.classList.remove(
+            "hidden"
+        );
+    }
+);
+
+
+// ==========================================================
+// KEYBOARD
+// ==========================================================
+
+window.addEventListener(
+    "keydown",
+    event => {
+
+        const key =
+            event.key.toLowerCase();
+
+        if (
+            key.startsWith("arrow")
+        ) {
+            event.preventDefault();
+        }
+
+        keys[key] = true;
+
+        if (
+            gameState === "playing" &&
+            key === "e"
+        ) {
+
+            toggleHiding(player1);
+        }
+
+        if (
+            gameState === "playing" &&
+            gameMode === 2 &&
+            key === "enter"
+        ) {
+
+            event.preventDefault();
+
+            toggleHiding(player2);
+        }
+
+        if (
+            gameState === "playing" &&
+            gameMode === 1 &&
+            key === "r"
+        ) {
+
+            loadMap(
+                singlePlayerLevels[
+                    currentLevel
+                ],
+                currentLevel
+            );
+        }
+
+        if (
+            gameState === "roundover" &&
+            key === "enter"
+        ) {
+
+            startTwoPlayer();
+        }
+
+        if (
+            (
+                gameState === "gameover" ||
+                gameState === "victory"
+            )
+            &&
+            key === "enter"
+        ) {
+
+            startSinglePlayer(0);
+        }
+    }
+);
+
+
+window.addEventListener(
+    "keyup",
+    event => {
+
+        keys[
+            event.key.toLowerCase()
+        ] = false;
     }
 );
 
@@ -2975,41 +2353,25 @@ sfxToggle.addEventListener(
 // LEVEL SELECT
 // ==========================================================
 
-function getLevelStars(
-    levelNumber
-) {
+const LEVELS_PER_PAGE = 12;
 
-    const completed =
-        localStorage.getItem(
-            "cellBlockEscapeCompleted_" +
-            levelNumber
-        );
-
-
-    return completed
-        ? "★★★"
-        : "☆☆☆";
-}
+let levelPage = 0;
 
 
 function drawLevelSelect() {
 
-    levelGrid.innerHTML =
-        "";
-
+    levelGrid.innerHTML = "";
 
     const start =
-        levelSelectPage *
+        levelPage *
         LEVELS_PER_PAGE;
-
 
     const end =
         Math.min(
             start +
             LEVELS_PER_PAGE,
-            levels.length
+            singlePlayerLevels.length
         );
-
 
     for (
         let i = start;
@@ -3017,137 +2379,118 @@ function drawLevelSelect() {
         i++
     ) {
 
-        const levelNumber =
-            i + 1;
-
+        const number = i + 1;
 
         const button =
             document.createElement(
                 "button"
             );
 
-
         button.className =
             "level-button";
 
-
         if (
-            levelNumber >
+            number >
             highestUnlockedLevel
         ) {
+
+            button.disabled = true;
 
             button.classList.add(
                 "locked"
             );
 
-
-            button.disabled =
-                true;
-
-
             button.innerHTML =
-                `
-                🔒
-                <span class="level-stars">
+                `🔒
+                 <span class="level-stars">
                     ☆☆☆
-                </span>
-                `;
+                 </span>`;
 
         } else {
 
-            button.innerHTML =
-                `
-                ${levelNumber}
-                <span class="level-stars">
-                    ${getLevelStars(levelNumber)}
-                </span>
-                `;
+            const complete =
+                localStorage.getItem(
+                    `cellBlockEscapeCompleted_${number}`
+                );
 
+            button.innerHTML =
+                `${number}
+                 <span class="level-stars">
+                    ${complete
+                        ? "★★★"
+                        : "☆☆☆"}
+                 </span>`;
 
             button.addEventListener(
                 "click",
-                function() {
+                () => {
 
-                    selectLevel(i);
+                    levelSelectMenu
+                        .classList
+                        .add("hidden");
+
+                    startSinglePlayer(i);
                 }
             );
         }
 
-
-        if (
-            i === currentLevel
-        ) {
+        if (i === currentLevel) {
 
             button.classList.add(
                 "current"
             );
         }
 
-
         levelGrid.appendChild(
             button
         );
     }
 
-
     const pages =
         Math.ceil(
-            levels.length /
+            singlePlayerLevels.length /
             LEVELS_PER_PAGE
         );
 
-
     levelPageDisplay.textContent =
-        (levelSelectPage + 1)
-        +
-        " / "
-        +
-        pages;
-
+        `${levelPage + 1} / ${pages}`;
 
     previousLevelsButton.disabled =
-        levelSelectPage === 0;
-
+        levelPage === 0;
 
     nextLevelsButton.disabled =
-        levelSelectPage >=
-        pages - 1;
+        levelPage >= pages - 1;
 }
 
 
 levelSelectButton.addEventListener(
     "click",
-    function() {
+    () => {
 
-        pauseGameForMenu();
+        if (gameMode !== 1) return;
 
+        openPauseMenu(
+            levelSelectMenu
+        );
 
-        levelSelectPage =
+        levelPage =
             Math.floor(
                 currentLevel /
                 LEVELS_PER_PAGE
             );
 
-
         drawLevelSelect();
-
-
-        levelSelectMenu.classList.remove(
-            "hidden"
-        );
     }
 );
 
 
 previousLevelsButton.addEventListener(
     "click",
-    function() {
+    () => {
 
-        if (
-            levelSelectPage > 0
-        ) {
+        if (levelPage > 0) {
 
-            levelSelectPage--;
+            levelPage--;
 
             drawLevelSelect();
         }
@@ -3157,21 +2500,20 @@ previousLevelsButton.addEventListener(
 
 nextLevelsButton.addEventListener(
     "click",
-    function() {
+    () => {
 
         const pages =
             Math.ceil(
-                levels.length /
+                singlePlayerLevels.length /
                 LEVELS_PER_PAGE
             );
 
-
         if (
-            levelSelectPage <
+            levelPage <
             pages - 1
         ) {
 
-            levelSelectPage++;
+            levelPage++;
 
             drawLevelSelect();
         }
@@ -3181,63 +2523,15 @@ nextLevelsButton.addEventListener(
 
 closeLevelSelectButton.addEventListener(
     "click",
-    function() {
+    () => {
 
         levelSelectMenu.classList.add(
             "hidden"
         );
 
-
-        resumeGameFromMenu();
+        resumeFromPause();
     }
 );
-
-
-function selectLevel(index) {
-
-    if (
-        index + 1 >
-        highestUnlockedLevel
-    ) {
-
-        return;
-    }
-
-
-    levelSelectMenu.classList.add(
-        "hidden"
-    );
-
-
-    lives = 3;
-
-    score = 0;
-
-    elapsedTime = 0;
-
-    pausedTime = 0;
-
-    pauseStartedAt = 0;
-
-
-    loadLevel(index);
-
-
-    gameStartTime =
-        Date.now();
-
-
-    gameState =
-        "playing";
-
-
-    if (musicEnabled) {
-
-        backgroundMusic
-            .play()
-            .catch(() => {});
-    }
-}
 
 
 // ==========================================================
@@ -3254,12 +2548,10 @@ function drawFloor(
     const theme =
         getLevelTheme();
 
-
     ctx.fillStyle =
         (row + col) % 2 === 0
             ? theme.floor1
             : theme.floor2;
-
 
     ctx.fillRect(
         x,
@@ -3268,10 +2560,8 @@ function drawFloor(
         TILE
     );
 
-
     ctx.strokeStyle =
         theme.floorLine;
-
 
     ctx.strokeRect(
         x,
@@ -3279,45 +2569,6 @@ function drawFloor(
         TILE,
         TILE
     );
-
-
-    if (
-        currentLevel + 1 >= 10 &&
-        (
-            row * 5 +
-            col * 7 +
-            currentLevel
-        ) % 8 === 0
-    ) {
-
-        ctx.strokeStyle =
-            "rgba(20,20,20,.5)";
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x + 8,
-            y + 10
-        );
-
-        ctx.lineTo(
-            x + 16,
-            y + 17
-        );
-
-        ctx.lineTo(
-            x + 12,
-            y + 25
-        );
-
-        ctx.lineTo(
-            x + 21,
-            y + 29
-        );
-
-        ctx.stroke();
-    }
 }
 
 
@@ -3335,10 +2586,8 @@ function drawWall(
     const theme =
         getLevelTheme();
 
-
     ctx.fillStyle =
         theme.wallOuter;
-
 
     ctx.fillRect(
         x,
@@ -3347,10 +2596,8 @@ function drawWall(
         TILE
     );
 
-
     ctx.fillStyle =
         theme.wallMain;
-
 
     ctx.fillRect(
         x + 3,
@@ -3359,10 +2606,8 @@ function drawWall(
         TILE - 6
     );
 
-
     ctx.fillStyle =
         theme.wallLight;
-
 
     ctx.fillRect(
         x + 5,
@@ -3371,10 +2616,8 @@ function drawWall(
         5
     );
 
-
     ctx.fillStyle =
         theme.wallDark;
-
 
     ctx.fillRect(
         x + 5,
@@ -3383,13 +2626,10 @@ function drawWall(
         5
     );
 
-
     ctx.strokeStyle =
         theme.wallLine;
 
-
     ctx.lineWidth = 2;
-
 
     ctx.beginPath();
 
@@ -3404,7 +2644,6 @@ function drawWall(
     );
 
     ctx.stroke();
-
 
     if (
         (row + col) % 2 === 0
@@ -3423,72 +2662,14 @@ function drawWall(
         );
 
         ctx.stroke();
-
-    } else {
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x + TILE / 2,
-            y + TILE / 2
-        );
-
-        ctx.lineTo(
-            x + TILE / 2,
-            y + TILE
-        );
-
-        ctx.stroke();
     }
-
-
-    if (
-        currentLevel + 1 >= 10
-    ) {
-
-        ctx.fillStyle =
-            "#666";
-
-
-        ctx.fillRect(
-            x + 6,
-            y + 6,
-            3,
-            3
-        );
-
-
-        ctx.fillRect(
-            x + TILE - 9,
-            y + 6,
-            3,
-            3
-        );
-
-
-        ctx.fillRect(
-            x + 6,
-            y + TILE - 9,
-            3,
-            3
-        );
-
-
-        ctx.fillRect(
-            x + TILE - 9,
-            y + TILE - 9,
-            3,
-            3
-        );
-    }
-
 
     ctx.lineWidth = 1;
 }
 
 
 // ==========================================================
-// DRAW MAP
+// MAP
 // ==========================================================
 
 function drawMap() {
@@ -3505,12 +2686,8 @@ function drawMap() {
             col++
         ) {
 
-            const x =
-                col * TILE;
-
-            const y =
-                row * TILE;
-
+            const x = col * TILE;
+            const y = row * TILE;
 
             if (
                 currentMap[row][col]
@@ -3539,137 +2716,129 @@ function drawMap() {
 
 
 // ==========================================================
-// DRAW HIDING LOCKERS
+// WALL-MOUNTED EXIT
 // ==========================================================
 
-function drawHidingSpots() {
+function drawExit(
+    exit,
+    open,
+    playerNumber
+) {
 
-    for (
-        const spot
-        of hidingSpots
-    ) {
+    if (!exit) return;
 
-        const x =
-            spot.x;
+    const theme =
+        getLevelTheme();
 
-        const y =
-            spot.y;
+    const x = exit.x;
+    const y = exit.y;
 
+    // Wall backing
 
-        ctx.fillStyle =
-            "#252b2e";
+    ctx.fillStyle =
+        theme.wallOuter;
 
+    ctx.fillRect(
+        x,
+        y,
+        TILE,
+        TILE
+    );
 
-        ctx.fillRect(
-            x,
-            y,
-            spot.width,
-            spot.height
-        );
+    ctx.fillStyle =
+        theme.wallMain;
 
+    ctx.fillRect(
+        x + 3,
+        y + 3,
+        TILE - 6,
+        TILE - 6
+    );
 
-        ctx.fillStyle =
-            "#626d72";
+    // Dark door frame
 
+    ctx.fillStyle = "#25100c";
 
-        ctx.fillRect(
-            x + 3,
-            y + 2,
-            spot.width - 6,
-            spot.height - 4
-        );
+    ctx.fillRect(
+        x + 7,
+        y + 3,
+        TILE - 14,
+        TILE - 4
+    );
 
+    // Door
 
-        ctx.fillStyle =
-            "#899398";
+    ctx.fillStyle =
+        open
+            ? "#2e7d32"
+            : "#8b1010";
 
+    ctx.fillRect(
+        x + 10,
+        y + 7,
+        TILE - 20,
+        TILE - 11
+    );
 
-        ctx.fillRect(
-            x + 6,
-            y + 5,
-            spot.width - 12,
-            4
-        );
+    // Player-specific frame
 
+    ctx.strokeStyle =
+        playerNumber === 2
+            ? "#b388ff"
+            : "#ffd600";
 
-        ctx.fillStyle =
-            "#30383c";
+    ctx.lineWidth = 3;
 
+    ctx.strokeRect(
+        x + 9,
+        y + 6,
+        TILE - 18,
+        TILE - 9
+    );
 
-        ctx.fillRect(
-            x + 8,
-            y + 13,
-            spot.width - 16,
-            2
-        );
+    // Handle
 
+    ctx.fillStyle =
+        playerNumber === 2
+            ? "#b388ff"
+            : "#ffd600";
 
-        ctx.fillRect(
-            x + 8,
-            y + 17,
-            spot.width - 16,
-            2
-        );
+    ctx.fillRect(
+        x + TILE - 17,
+        y + 20,
+        4,
+        5
+    );
 
-
-        ctx.fillStyle =
-            "#ffd54f";
-
-
-        ctx.fillRect(
-            x + spot.width - 9,
-            y + 21,
-            3,
-            6
-        );
-    }
+    ctx.lineWidth = 1;
 }
 
 
 // ==========================================================
-// DRAW KEY
+// KEY
 // ==========================================================
 
-function drawKey() {
+function drawKey(
+    key,
+    color
+) {
 
     if (
-        !keyItem ||
-        keyItem.collected
+        !key ||
+        key.collected
     ) {
-
         return;
     }
 
-
     const x =
-        keyItem.x + 10;
+        key.x + 10;
 
     const y =
-        keyItem.y + 10;
+        key.y + 10;
 
-
-    ctx.fillStyle =
-        "rgba(255,255,0,.25)";
-
-
-    ctx.beginPath();
-
-    ctx.arc(
-        x,
-        y,
-        16,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-
-    ctx.strokeStyle =
-        "#fff200";
+    ctx.strokeStyle = color;
 
     ctx.lineWidth = 4;
-
 
     ctx.beginPath();
 
@@ -3683,13 +2852,9 @@ function drawKey() {
 
     ctx.stroke();
 
-
     ctx.beginPath();
 
-    ctx.moveTo(
-        x,
-        y
-    );
+    ctx.moveTo(x, y);
 
     ctx.lineTo(
         x + 12,
@@ -3703,133 +2868,103 @@ function drawKey() {
 
     ctx.stroke();
 
-
     ctx.lineWidth = 1;
 }
 
 
 // ==========================================================
-// DRAW EXIT
+// LOCKERS
 // ==========================================================
 
-function drawExit() {
-
-    if (!exitGate) {
-
-        return;
-    }
-
-
-    const x =
-        exitGate.x;
-
-    const y =
-        exitGate.y;
-
-
-    ctx.fillStyle =
-        hasKey
-            ? "#2e7d32"
-            : "#8b1d1d";
-
-
-    ctx.fillRect(
-        x + 4,
-        y + 2,
-        TILE - 8,
-        TILE - 4
-    );
-
-
-    ctx.strokeStyle =
-        "#111";
-
-    ctx.lineWidth = 3;
-
+function drawHidingSpots() {
 
     for (
-        let i = 9;
-        i <= 32;
-        i += 8
+        const spot
+        of hidingSpots
     ) {
 
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x + i,
-            y + 4
-        );
-
-        ctx.lineTo(
-            x + i,
-            y + TILE - 4
-        );
-
-        ctx.stroke();
-    }
-
-
-    if (!hasKey) {
-
-        ctx.fillStyle =
-            "#ffd600";
-
+        ctx.fillStyle = "#252b2e";
 
         ctx.fillRect(
-            x + 16,
-            y + 17,
-            9,
-            9
+            spot.x,
+            spot.y,
+            spot.width,
+            spot.height
+        );
+
+        ctx.fillStyle = "#626d72";
+
+        ctx.fillRect(
+            spot.x + 3,
+            spot.y + 2,
+            spot.width - 6,
+            spot.height - 4
+        );
+
+        ctx.fillStyle = "#30383c";
+
+        ctx.fillRect(
+            spot.x + 8,
+            spot.y + 13,
+            spot.width - 16,
+            2
+        );
+
+        ctx.fillRect(
+            spot.x + 8,
+            spot.y + 17,
+            spot.width - 16,
+            2
+        );
+
+        ctx.fillStyle = "#ffd54f";
+
+        ctx.fillRect(
+            spot.x +
+            spot.width - 9,
+            spot.y + 21,
+            3,
+            6
         );
     }
-
-
-    ctx.lineWidth = 1;
 }
 
 
 // ==========================================================
-// DRAW CHARACTER
+// CHARACTER
 // ==========================================================
 
 function drawCharacter(
     character,
-    isGuard
+    guard = false
 ) {
 
-    const x =
-        Math.round(
-            character.x
-        );
-
-    const y =
-        Math.round(
-            character.y
-        );
-
-
-    let legMove = 0;
-
-
-    if (character.moving) {
-
-        legMove =
-            character.walkFrame === 0
-                ? 2
-                : -2;
+    if (
+        !character ||
+        character.hidden
+    ) {
+        return;
     }
 
+    const x =
+        Math.round(character.x);
 
-    const armMove =
-        -legMove;
+    const y =
+        Math.round(character.y);
 
+    const step =
+        character.moving
+            ? (
+                character.walkFrame
+                    ? 2
+                    : -2
+            )
+            : 0;
 
-    ctx.save();
-
+    // Shadow
 
     ctx.fillStyle =
         "rgba(0,0,0,.3)";
-
 
     ctx.beginPath();
 
@@ -3845,82 +2980,37 @@ function drawCharacter(
 
     ctx.fill();
 
-
-    // LEGS
+    // Legs
 
     ctx.fillStyle =
-        isGuard
+        guard
             ? "#143b60"
-            : "#c45700";
-
+            : character.playerNumber === 2
+                ? "#512da8"
+                : "#c45700";
 
     ctx.fillRect(
         x + 6,
-        y + 20 + legMove,
+        y + 20 + step,
         6,
         7
     );
 
-
     ctx.fillRect(
         x + 15,
-        y + 20 - legMove,
+        y + 20 - step,
         6,
         7
     );
 
-
-    // SHOES
-
-    ctx.fillStyle =
-        "#17120f";
-
-
-    ctx.fillRect(
-        x + 5,
-        y + 25 + legMove,
-        7,
-        4
-    );
-
-
-    ctx.fillRect(
-        x + 15,
-        y + 25 - legMove,
-        7,
-        4
-    );
-
-
-    // ARMS
+    // Body
 
     ctx.fillStyle =
-        "#d69461";
-
-
-    ctx.fillRect(
-        x + 2,
-        y + 12 + armMove,
-        5,
-        9
-    );
-
-
-    ctx.fillRect(
-        x + 20,
-        y + 12 - armMove,
-        5,
-        9
-    );
-
-
-    // BODY
-
-    ctx.fillStyle =
-        isGuard
+        guard
             ? "#245f91"
-            : "#f57c00";
-
+            : character.playerNumber === 2
+                ? "#7e57c2"
+                : "#f57c00";
 
     ctx.fillRect(
         x + 6,
@@ -3929,52 +3019,9 @@ function drawCharacter(
         14
     );
 
+    // Head
 
-    if (isGuard) {
-
-        ctx.fillStyle =
-            "#181818";
-
-
-        ctx.fillRect(
-            x + 6,
-            y + 19,
-            15,
-            3
-        );
-
-
-        ctx.fillStyle =
-            "#ffd740";
-
-
-        ctx.fillRect(
-            x + 16,
-            y + 12,
-            3,
-            4
-        );
-
-    } else {
-
-        ctx.fillStyle =
-            "#60310d";
-
-
-        ctx.fillRect(
-            x + 6,
-            y + 15,
-            15,
-            3
-        );
-    }
-
-
-    // HEAD
-
-    ctx.fillStyle =
-        "#d69461";
-
+    ctx.fillStyle = "#d69461";
 
     ctx.fillRect(
         x + 8,
@@ -3983,22 +3030,21 @@ function drawCharacter(
         10
     );
 
+    // Hat/hair
 
-    // HAT / HAIR
+    ctx.fillStyle =
+        guard
+            ? "#102d48"
+            : "#3b2618";
 
-    if (isGuard) {
+    ctx.fillRect(
+        x + 8,
+        y,
+        12,
+        4
+    );
 
-        ctx.fillStyle =
-            "#102d48";
-
-
-        ctx.fillRect(
-            x + 7,
-            y,
-            14,
-            5
-        );
-
+    if (guard) {
 
         ctx.fillRect(
             x + 5,
@@ -4006,43 +3052,14 @@ function drawCharacter(
             18,
             3
         );
-
-
-        ctx.fillStyle =
-            "#ffd740";
-
-
-        ctx.fillRect(
-            x + 13,
-            y + 1,
-            3,
-            3
-        );
-
-    } else {
-
-        ctx.fillStyle =
-            "#3b2618";
-
-
-        ctx.fillRect(
-            x + 8,
-            y,
-            12,
-            4
-        );
     }
 
+    // Eyes
 
-    // EYES
-
-    ctx.fillStyle =
-        "#17120f";
-
+    ctx.fillStyle = "#111";
 
     if (
-        character.direction ===
-        "down"
+        character.direction === "down"
     ) {
 
         ctx.fillRect(
@@ -4052,41 +3069,13 @@ function drawCharacter(
             2
         );
 
-
         ctx.fillRect(
             x + 16,
             y + 6,
             2,
             2
         );
-
-    } else if (
-        character.direction ===
-        "left"
-    ) {
-
-        ctx.fillRect(
-            x + 9,
-            y + 6,
-            2,
-            2
-        );
-
-    } else if (
-        character.direction ===
-        "right"
-    ) {
-
-        ctx.fillRect(
-            x + 17,
-            y + 6,
-            2,
-            2
-        );
     }
-
-
-    ctx.restore();
 }
 
 
@@ -4094,88 +3083,55 @@ function drawCharacter(
 // GUARD ALERT
 // ==========================================================
 
-function drawGuardAlert(guard) {
+function drawGuardAlert(
+    guard
+) {
 
     if (
-        guard.state ===
-        "patrol"
+        guard.state === "patrol"
     ) {
-
         return;
     }
 
-
-    ctx.save();
-
-
-    ctx.textAlign =
-        "center";
-
+    ctx.textAlign = "center";
 
     ctx.font =
         "bold 21px Arial";
 
+    ctx.fillStyle =
+        guard.state === "chase"
+            ? "#ff1744"
+            : "#fff176";
 
-    if (
-        guard.state ===
-        "chase"
-    ) {
+    ctx.fillText(
+        guard.state === "chase"
+            ? "!"
+            : "?",
+        guard.x +
+        guard.width / 2,
+        guard.y - 6
+    );
 
-        ctx.fillStyle =
-            "#ff1744";
-
-
-        ctx.fillText(
-            "!",
-            guard.x +
-            guard.width / 2,
-            guard.y - 7
-        );
-    }
-
-
-    if (
-        guard.state ===
-        "search"
-    ) {
-
-        ctx.fillStyle =
-            "#fff176";
-
-
-        ctx.fillText(
-            "?",
-            guard.x +
-            guard.width / 2,
-            guard.y - 7
-        );
-    }
-
-
-    ctx.restore();
+    ctx.textAlign = "left";
 }
 
 
 // ==========================================================
-// OVERLAY
+// OVERLAYS
 // ==========================================================
 
 function drawOverlay() {
 
     if (
-        gameState ===
-        "playing" ||
-        gameState ===
-        "paused"
+        gameState === "playing" ||
+        gameState === "paused" ||
+        gameState === "menu"
     ) {
-
         return;
     }
 
-
     ctx.fillStyle =
-        "rgba(20,15,10,.85)";
-
+        "rgba(0,0,0,.85)";
 
     ctx.fillRect(
         0,
@@ -4184,248 +3140,115 @@ function drawOverlay() {
         canvas.height
     );
 
-
-    ctx.textAlign =
-        "center";
-
+    ctx.textAlign = "center";
 
     if (
-        gameState ===
-        "start"
+        gameState === "roundover"
     ) {
 
         ctx.fillStyle =
-            "#ffd54f";
-
+            winner === 1
+                ? "#ff9800"
+                : "#b388ff";
 
         ctx.font =
-            "bold 45px monospace";
-
+            "bold 52px monospace";
 
         ctx.fillText(
-            "CELL BLOCK ESCAPE",
+            `PLAYER ${winner} WINS!`,
             canvas.width / 2,
-            180
+            220
         );
 
-
-        ctx.fillStyle =
-            "#fff";
-
+        ctx.fillStyle = "#fff";
 
         ctx.font =
             "20px monospace";
 
-
         ctx.fillText(
-            "20 LEVEL PRISON ESCAPE",
-            canvas.width / 2,
-            240
-        );
-
-
-        ctx.fillText(
-            "Find the key. Hide. Escape.",
+            "FIRST PRISONER TO ESCAPE!",
             canvas.width / 2,
             285
         );
 
-
-        ctx.fillStyle =
-            "#fff176";
-
+        ctx.fillStyle = "#ffd54f";
 
         ctx.fillText(
-            "PRESS ENTER TO START",
+            "PRESS ENTER FOR A RANDOM REMATCH",
             canvas.width / 2,
-            370
+            360
         );
     }
 
-
     if (
-        gameState ===
-        "gameover"
+        gameState === "gameover"
     ) {
 
-        ctx.fillStyle =
-            "#ff5252";
-
+        ctx.fillStyle = "#ff5252";
 
         ctx.font =
             "bold 55px monospace";
 
-
         ctx.fillText(
             "GAME OVER",
             canvas.width / 2,
-            210
+            220
         );
 
-
-        ctx.fillStyle =
-            "#fff";
-
+        ctx.fillStyle = "#ffd54f";
 
         ctx.font =
             "20px monospace";
-
-
-        ctx.fillText(
-            "LEVEL: " +
-            (currentLevel + 1),
-            canvas.width / 2,
-            275
-        );
-
-
-        ctx.fillText(
-            "SCORE: " +
-            score,
-            canvas.width / 2,
-            315
-        );
-
-
-        ctx.fillStyle =
-            "#ffd54f";
-
 
         ctx.fillText(
             "PRESS ENTER TO TRY AGAIN",
             canvas.width / 2,
-            390
+            330
         );
     }
 
-
     if (
-        gameState ===
-        "victory"
+        gameState === "victory"
     ) {
 
-        ctx.fillStyle =
-            "#69f0ae";
-
+        ctx.fillStyle = "#69f0ae";
 
         ctx.font =
-            "bold 48px monospace";
-
+            "bold 50px monospace";
 
         ctx.fillText(
             "YOU ESCAPED!",
             canvas.width / 2,
-            150
+            190
         );
 
-
-        ctx.fillStyle =
-            "#fff";
-
+        ctx.fillStyle = "#fff";
 
         ctx.font =
             "20px monospace";
 
-
         ctx.fillText(
             "ALL 20 LEVELS CLEARED",
             canvas.width / 2,
-            210
+            250
         );
 
-
-        ctx.fillStyle =
-            "#ffd54f";
-
+        ctx.fillStyle = "#ffd54f";
 
         ctx.fillText(
-            "TIME: " +
-            timerDisplay.textContent,
+            `SCORE: ${score}`,
             canvas.width / 2,
-            265
+            300
         );
 
-
         ctx.fillText(
-            "SCORE: " +
-            score,
+            `HIGH SCORE: ${highScore}`,
             canvas.width / 2,
-            305
-        );
-
-
-        ctx.fillText(
-            "HIGH SCORE: " +
-            highScore,
-            canvas.width / 2,
-            345
-        );
-
-
-        ctx.fillStyle =
-            "#fff";
-
-
-        ctx.fillText(
-            "PRESS ENTER TO PLAY AGAIN",
-            canvas.width / 2,
-            415
+            340
         );
     }
 
-
-    ctx.textAlign =
-        "left";
-}
-
-
-// ==========================================================
-// HIDDEN MESSAGE
-// ==========================================================
-
-function drawHiddenMessage() {
-
-    if (!playerHidden) {
-
-        return;
-    }
-
-
-    ctx.save();
-
-
-    ctx.fillStyle =
-        "rgba(0,0,0,.7)";
-
-
-    ctx.fillRect(
-        canvas.width / 2 - 150,
-        12,
-        300,
-        35
-    );
-
-
-    ctx.fillStyle =
-        "#69f0ae";
-
-
-    ctx.textAlign =
-        "center";
-
-
-    ctx.font =
-        "bold 15px monospace";
-
-
-    ctx.fillText(
-        "HIDDEN - PRESS E TO LEAVE",
-        canvas.width / 2,
-        35
-    );
-
-
-    ctx.restore();
+    ctx.textAlign = "left";
 }
 
 
@@ -4436,21 +3259,18 @@ function drawHiddenMessage() {
 function update() {
 
     if (
-        gameState !==
-        "playing"
+        gameState !== "playing"
     ) {
-
         return;
     }
 
-
     updateTimer();
 
-    updatePlayer();
+    updatePlayers();
 
-    updateKey();
+    updateKeys();
 
-    updateExit();
+    updateExits();
 
     updateGuards();
 }
@@ -4469,50 +3289,70 @@ function draw() {
         canvas.height
     );
 
-
     drawMap();
 
     drawHidingSpots();
 
-    drawExit();
+    drawExit(
+        exit1,
+        player1HasKey,
+        1
+    );
 
-    drawKey();
+    if (gameMode === 2) {
 
+        drawExit(
+            exit2,
+            player2HasKey,
+            2
+        );
+    }
+
+    drawKey(
+        key1,
+        "#fff200"
+    );
+
+    if (gameMode === 2) {
+
+        drawKey(
+            key2,
+            "#b388ff"
+        );
+    }
 
     for (
         const guard
         of guards
     ) {
 
-        drawGuardAlert(
-            guard
-        );
-
-
         drawCharacter(
             guard,
             true
         );
-    }
 
-
-    if (!playerHidden) {
-
-        drawCharacter(
-            player,
-            false
+        drawGuardAlert(
+            guard
         );
     }
 
+    drawCharacter(
+        player1
+    );
 
-    drawHiddenMessage();
+    if (gameMode === 2) {
+
+        drawCharacter(
+            player2
+        );
+    }
 
     drawOverlay();
 }
 
 
 // ==========================================================
-// LOOP
+// GAME LOOP
 // ==========================================================
 
 function gameLoop() {
@@ -4521,7 +3361,6 @@ function gameLoop() {
 
     draw();
 
-
     requestAnimationFrame(
         gameLoop
     );
@@ -4529,11 +3368,19 @@ function gameLoop() {
 
 
 // ==========================================================
-// START
+// INITIALIZE
 // ==========================================================
 
 loadSettings();
 
-loadLevel(0);
+highScoreDisplay.textContent =
+    highScore;
+
+loadMap(
+    singlePlayerLevels[0],
+    0
+);
+
+gameState = "menu";
 
 gameLoop();
